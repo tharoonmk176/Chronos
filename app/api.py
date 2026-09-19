@@ -491,7 +491,7 @@ async def upload_portfolio(
             if pd.isna(qty) or pd.isna(price) or qty == 0 or price == 0:
                 continue
                 
-            if ticker.isalpha() and not '.' in ticker:
+            if not '.' in ticker:
                 indian_stocks = ['RELIANCE', 'TCS', 'HDFCBANK', 'ICICIBANK', 'INFY', 'BHARTIARTL', 'ITC', 'SBIN', 'LT', 'HINDUNILVR', 'KOTAKBANK', 'AXISBANK', 'BAJFINANCE', 'MARUTI', 'SUNPHARMA', 'TITAN', 'ULTRACEMCO', 'NTPC', 'POWERGRID', 'M&M', 'TATAMOTORS', 'ADANIENT', 'ADANIPORTS', 'WIPRO', 'TECHM', 'HCLTECH', 'ONGC', 'COALINDIA', 'TATASTEEL', 'JSWSTEEL', 'HINDALCO', 'GRASIM', 'ASIANPAINT', 'NESTLEIND', 'BAJAJFINSV', 'DIVISLAB', 'DRREDDY', 'CIPLA', 'EICHERMOT', 'APOLLOHOSP', 'TRENT', 'JIOFIN', 'ZOMATO', 'IRFC', 'SUZLON', 'PAYTM', 'POLYCAB', 'DIXON', 'PIIND', 'CDSL']
                 if ticker in indian_stocks:
                     ticker += '.NS'
@@ -615,14 +615,9 @@ async def get_portfolio(portfolio_id: str, db: Session = Depends(get_db)):
         buy_p = clean_float(item.buy_price, 0.0)
         qty = clean_float(item.quantity, 0.0)
         
-        ticker_data = live_data.get(item.ticker, {"current_price": 0.0, "prev_close": 0.0})
-        
-        is_fallback = (ticker_data["current_price"] == 0.0)
+        ticker_data = live_data.get(item.ticker, {"current_price": buy_p, "prev_close": buy_p})
         
         current_price = ticker_data["current_price"]
-        if is_fallback:
-            current_price = clean_float(item.fallback_current_price, buy_p)
-            
         prev_close = ticker_data["prev_close"]
         if prev_close == 0.0:
             prev_close = current_price
@@ -631,8 +626,6 @@ async def get_portfolio(portfolio_id: str, db: Session = Depends(get_db)):
         current_value = qty * current_price
         
         today_gain = qty * (current_price - prev_close)
-        if is_fallback:
-            today_gain = clean_float(getattr(item, 'fallback_today_gain', 0.0), 0.0)
 
         holdings.append({
             "id": item.id,
