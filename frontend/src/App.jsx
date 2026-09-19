@@ -10,6 +10,7 @@ import ResultsTable from "./components/ResultsTable";
 import TradesList from "./components/TradesList";
 import CorrelationHeatmap from "./components/CorrelationHeatmap";
 import OptimizerPanel from "./components/OptimizerPanel";
+import MarketDashboard from "./components/MarketDashboard";
 import AuthPanel from "./components/AuthPanel";
 import { clearToken } from "./api/client";
 import { loggedIn, loggedOut } from "./store/authSlice";
@@ -74,7 +75,7 @@ function App() {
         </div>{" "}
         <div className="hidden md:flex items-center gap-1 mx-8 bg-slate-100 dark:bg-zinc-800 p-1 rounded-lg">
           {" "}
-          {["backtest", "optimizer", "correlation"].map((tab) => (
+          {["backtest", "optimizer", "correlation", "market"].map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveMainTab(tab)}
@@ -135,6 +136,12 @@ function App() {
             <CorrelationHeatmap />{" "}
           </div>
         )}{" "}
+        
+        {activeMainTab === "market" && (
+          <div className="max-w-6xl mx-auto space-y-6">
+            <MarketDashboard isDark={isDark} />
+          </div>
+        )}
         {activeMainTab === "backtest" && (
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
             {" "}
