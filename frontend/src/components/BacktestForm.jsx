@@ -34,7 +34,7 @@ export default function BacktestForm({ onSubmit, loading }) {
           className="w-full px-3 py-2 bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
           value={form.ticker}
           onChange={update("ticker")}
-          placeholder="BTC-USD"
+          list="popular-tickers" placeholder="BTC-USD"
         />{" "}
       </div>{" "}
       <div className="grid grid-cols-2 gap-3">
@@ -172,6 +172,28 @@ export default function BacktestForm({ onSubmit, loading }) {
         )}{" "}
         {loading ? "Running Backtest…" : "Run Backtest"}{" "}
       </button>{" "}
-    </form>
+    
+      
+
+      <datalist id="popular-tickers">
+        <option value="BTC-USD" />
+<option value="ETH-USD" />
+<option value="SOL-USD" />
+<option value="SPY" />
+<option value="QQQ" />
+<option value="GLD" />
+<option value="NVDA" />
+<option value="AAPL" />
+<option value="MSFT" />
+<option value="AMZN" />
+<option value="TSLA" />
+<option value="META" />
+<option value="GOOGL" />
+<option value="JPM" />
+<option value="V" />
+<option value="WMT" />
+<option value="JNJ" />
+      </datalist>
+</form>
   );
 }

@@ -133,7 +133,29 @@ export default function OptimizerPanel() {
           {" "}
           {loading ? "Optimizing…" : "Run Grid Search"}{" "}
         </button>{" "}
-      </form>{" "}
+      
+      
+
+      <datalist id="popular-tickers">
+        <option value="BTC-USD" />
+<option value="ETH-USD" />
+<option value="SOL-USD" />
+<option value="SPY" />
+<option value="QQQ" />
+<option value="GLD" />
+<option value="NVDA" />
+<option value="AAPL" />
+<option value="MSFT" />
+<option value="AMZN" />
+<option value="TSLA" />
+<option value="META" />
+<option value="GOOGL" />
+<option value="JPM" />
+<option value="V" />
+<option value="WMT" />
+<option value="JNJ" />
+      </datalist>
+</form>{" "}
       {error && (
         <div className="mt-4 bg-red-50 dark:bg-red-500/10 text-red-700 dark:text-red-400 p-3 rounded-lg text-sm border border-red-100 dark:border-red-500/30">
           {error}
