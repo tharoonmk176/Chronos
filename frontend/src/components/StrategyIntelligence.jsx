@@ -97,7 +97,7 @@ const StrategyIntelligence = () => {
             </div>
           </div>
           <div className="text-right">
-            <div className="text-xs text-slate-500 mb-1">VIX: 14.2 | SPY > 200DMA</div>
+            <div className="text-xs text-slate-500 mb-1">VIX: 14.2 | SPY &gt; 200DMA</div>
             <div className="text-xs text-amber-400 flex items-center justify-end space-x-1">
               <AlertTriangle size={12} />
               <span>Historical data only</span>
