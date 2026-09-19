@@ -15,6 +15,7 @@ import OptimizerPanel from "./components/OptimizerPanel";
 import MarketDashboard from "./components/MarketDashboard";
 import Chatbot from "./components/Chatbot";
 import AdvancedTechnicalChart from "./components/AdvancedTechnicalChart";
+import StrategyIntelligence from "./components/StrategyIntelligence";
 import LabsDashboard from "./components/LabsDashboard";
 import AuthPanel from "./components/AuthPanel";
 import { clearToken } from "./api/client";
@@ -26,7 +27,7 @@ function App() {
   const isAuthenticated = useSelector((s) => s.auth.isAuthenticated);
   const { results, indicators, regime, loading, statusMessage, error } =
     useSelector((s) => s.backtest);
-  const [activeMainTab, setActiveMainTab] = useState("backtest");
+  const [activeMainTab, setActiveMainTab] = useState("intel");
   const [activeSubTab, setActiveSubTab] = useState("overview");
   const [isDark, setIsDark] = useState(false);
   const [labsForm, setLabsForm] = useState({ ticker: "BTC-USD", start_date: "2023-01-01", end_date: "2024-01-01", initial_capital: 10000, strategy: "sma_crossover", transaction_cost: 0.001, sma_fast: 20, sma_slow: 50 });
@@ -82,7 +83,7 @@ function App() {
         </div>{" "}
         <div className="hidden md:flex items-center gap-1 mx-8 bg-slate-100 dark:bg-zinc-800 p-1 rounded-lg">
           {" "}
-          {["backtest", "optimizer", "correlation", "labs", "market"].map((tab) => (
+          {["intel", "backtest", "optimizer", "correlation", "labs", "market"].map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveMainTab(tab)}
@@ -147,6 +148,7 @@ function App() {
 {" "}
       {/* Main Content Layout */}{" "}
       <div className="flex-1 max-w-[1600px] w-full mx-auto p-6">
+        {activeMainTab === "intel" && <StrategyIntelligence />}
         {" "}
         {activeMainTab === "optimizer" && (
           <div className="max-w-4xl mx-auto bg-white dark:bg-zinc-900 rounded-xl border border-slate-200 dark:border-zinc-800 shadow-sm p-6">
