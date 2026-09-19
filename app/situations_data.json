@@ -1,0 +1,32 @@
+[
+  {
+    "Situation": "1. Cross-market trend or uncertainty",
+    "Market conditions / objective": "Directional dispersion across assets; want diversification rather than a single equity bet",
+    "Recommended strategies (4)": "1 Low-Vol Cross-Asset Futures Risk Parity\n4 Asset Class Momentum\n5 Multi-Asset Trend + Mean-Reversion Entries\n8 Multi-Asset Daily Trend Breakout",
+    "Why these fit / main caution": "Different cross-asset mechanisms: risk parity, relative momentum and time-series trend. Futures and short signals require execution and margin testing."
+  },
+  {
+    "Situation": "2. Equity risk-on or recovery",
+    "Market conditions / objective": "Improving breadth, factor leadership and persistent equity trends",
+    "Recommended strategies (4)": "2 Value-Quality + News Sentiment\n3 Value-Quality + Trend Risk Control\n13 TheOmniscientParadox\n19 Large-Cap Momentum Rotation Defensive",
+    "Why these fit / main caution": "Balances fundamental selection and momentum. #13 is concentrated/leveraged-ETF orientated; #19 is newly submitted."
+  },
+  {
+    "Situation": "3. Equity stress or dislocation",
+    "Market conditions / objective": "Volatility shock, deteriorating growth or idiosyncratic overextension",
+    "Recommended strategies (4)": "7 Short Volatility Overbought Mean-Reversion Shorts\n14 Dynamic VIX-SPY Regime\n15 Long Short Harvest\n17 Regime-Based Multi-Asset Downside Protection",
+    "Why these fit / main caution": "#7 can suffer short squeezes; #14/15 rely on ML claims; #17 has very short history. Apply hard portfolio risk limits."
+  },
+  {
+    "Situation": "4. Crypto-specific regimes",
+    "Market conditions / objective": "Trading crypto trend, mean reversion or diversification",
+    "Recommended strategies (4)": "6 Bitcoin RSI Mean-Reversion\n9 ETH Dual-EMA Trend\n10 HRP Crypto Diversification\n16 Donchian Crypto Futures Breakout",
+    "Why these fit / main caution": "#6/#9 are single-asset binary systems; #16 uses perpetual futures and is new. Include funding, venue and liquidation stress tests."
+  },
+  {
+    "Situation": "5. Long-horizon tactical / defensive allocation",
+    "Market conditions / objective": "Lower-turnover allocation or explicit defensive overlay",
+    "Recommended strategies (4)": "11 Macro Factor Cross-Asset Rotation\n12 Leveraged ETF Momentum Allocator\n18 Annual Value Quality Top 50\n20 Trend Rotation + Defensive Overlay",
+    "Why these fit / main caution": "#12 lacks a public rule description; #18/#20 are new; #20 has 3x exposure. Treat as research screens, not ready-made portfolios."
+  }
+]

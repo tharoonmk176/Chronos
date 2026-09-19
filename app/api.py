@@ -393,3 +393,27 @@ def chat_with_bot(payload: ChatRequest):
     except Exception as e:
         return {"reply": f"Error connecting to Gemini API: {str(e)}"}
 
+
+
+import json
+import os
+from typing import List, Dict, Any
+
+@router.get("/intel/strategies")
+def get_intel_strategies():
+    try:
+        with open('app/strategies_data.json', 'r') as f:
+            data = json.load(f)
+        return {"strategies": data}
+    except Exception as e:
+        return {"error": str(e), "strategies": []}
+
+@router.get("/intel/situations")
+def get_intel_situations():
+    try:
+        with open('app/situations_data.json', 'r') as f:
+            data = json.load(f)
+        return {"situations": data}
+    except Exception as e:
+        return {"error": str(e), "situations": []}
+
