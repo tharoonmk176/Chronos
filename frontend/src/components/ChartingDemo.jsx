@@ -90,7 +90,7 @@ export default function ChartingDemo({ isDark }) {
                 { time: data[20].timeStr, position: 'belowBar', color: '#10b981', shape: 'arrowUp', text: 'Buy @ ' + data[20].close.toFixed(2) },
                 { time: data[60].timeStr, position: 'aboveBar', color: '#ef4444', shape: 'arrowDown', text: 'Sell @ ' + data[60].close.toFixed(2) }
             ];
-            candleSeries.setMarkers(markers);
+            if (typeof candleSeries.setMarkers === 'function') { candleSeries.setMarkers(markers); }
 
             window.addEventListener('resize', handleResize);
 
