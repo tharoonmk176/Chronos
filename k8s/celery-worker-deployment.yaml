@@ -1,0 +1,32 @@
+# UNVALIDATED — no Kubernetes cluster available in this sandbox.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fintech-celery-worker
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: fintech-celery-worker
+  template:
+    metadata:
+      labels:
+        app: fintech-celery-worker
+    spec:
+      containers:
+        - name: celery-worker
+          image: fintech-backend:latest
+          command: ["celery", "-A", "app.celery_app", "worker", "--loglevel=info"]
+          env:
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: db-credentials
+                  key: url
+            - name: REDIS_URL
+              value: redis://redis-service:6379/0
+            - name: SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: secret-key

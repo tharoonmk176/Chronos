@@ -1,0 +1,12 @@
+# UNVALIDATED — no ELK stack available in this sandbox; ships nothing anywhere without it.
+# Ships app/celery logs to Logstash for the ELK stack MASTER_PROMPT_FINTECH_PLATFORM.md
+# specifies. Uvicorn/Celery here just log to stdout/local files — no structured JSON logging
+# was added, so this is closer to a starting point than a finished pipeline.
+filebeat.inputs:
+  - type: log
+    enabled: true
+    paths:
+      - /app/*.log
+
+output.logstash:
+  hosts: ["logstash:5044"]

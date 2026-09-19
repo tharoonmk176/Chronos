@@ -1,0 +1,51 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+.venv/
+venv/
+env/
+
+# Environment and local config
+.env
+.env.*
+!.env.example
+*.local
+
+# Frontend
+node_modules/
+frontend/node_modules/
+dist/
+frontend/dist/
+dist-ssr/
+
+# Logs and runtime files
+logs/
+*.log
+*.pid
+celerybeat-schedule
+
+# Local service data
+.pgdata/
+.redisdata/
+*.sqlite
+*.sqlite3
+*.db
+
+# Tooling caches
+.cache/
+.tmp/
+tmp/
+
+# OS and editors
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo

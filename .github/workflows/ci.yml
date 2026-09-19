@@ -1,0 +1,55 @@
+# UNVALIDATED — this repo has no git remote / CI runner in this sandbox, so this workflow
+# has never actually executed. It mirrors the test command already verified to work locally
+# (pytest tests/, 59 passing) — that part is real; the "has this ever run in GitHub Actions"
+# part is not.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_USER: fintech
+          POSTGRES_PASSWORD: fintech_dev_pw
+          POSTGRES_DB: fintech_db
+        ports: ["5544:5432"]
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis:8-alpine
+        ports: ["6399:6379"]
+    env:
+      DATABASE_URL: postgresql://fintech:fintech_dev_pw@localhost:5544/fintech_db
+      REDIS_URL: redis://localhost:6399/0
+      SECRET_KEY: ci-test-secret
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install -r requirements.txt
+      - run: pytest tests/ -v
+
+  frontend-build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - run: npm ci
+      - run: npm run build

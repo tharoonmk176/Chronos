@@ -1,0 +1,9 @@
+# UNVALIDATED config file — no Prometheus/Grafana container available to run in this sandbox.
+# The endpoint it scrapes is real, though: GET /metrics on the FastAPI app, verified live.
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: fintech-backend
+    static_configs:
+      - targets: ["backend:8000"]

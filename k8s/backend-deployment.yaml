@@ -1,0 +1,64 @@
+# UNVALIDATED — no Kubernetes cluster available in this sandbox. Adapted from
+# MASTER_PROMPT_FINTECH_PLATFORM.md's example to this repo's actual image/port/env names.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fintech-backend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: fintech-backend
+  template:
+    metadata:
+      labels:
+        app: fintech-backend
+    spec:
+      containers:
+        - name: backend
+          image: fintech-backend:latest
+          ports:
+            - containerPort: 8000
+          env:
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: db-credentials
+                  key: url
+            - name: REDIS_URL
+              value: redis://redis-service:6379/0
+            - name: SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: secret-key
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "250m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 15
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend-service
+spec:
+  selector:
+    app: fintech-backend
+  type: LoadBalancer
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8000
