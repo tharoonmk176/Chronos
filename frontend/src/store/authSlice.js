@@ -1,20 +1,20 @@
-import { createSlice } from '@reduxjs/toolkit'
-import { getToken } from '../api/client'
+import { createSlice } from "@reduxjs/toolkit";
+import { getToken } from "../api/client";
 
 const authSlice = createSlice({
-  name: 'auth',
+  name: "auth",
   initialState: {
     isAuthenticated: Boolean(getToken()),
   },
   reducers: {
     loggedIn(state) {
-      state.isAuthenticated = true
+      state.isAuthenticated = true;
     },
     loggedOut(state) {
-      state.isAuthenticated = false
+      state.isAuthenticated = false;
     },
   },
-})
+});
 
-export const { loggedIn, loggedOut } = authSlice.actions
-export default authSlice.reducer
+export const { loggedIn, loggedOut } = authSlice.actions;
+export default authSlice.reducer;

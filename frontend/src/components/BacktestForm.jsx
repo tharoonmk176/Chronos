@@ -1,82 +1,177 @@
-import { useState } from 'react'
-
-const STRATEGIES = ['sma_crossover', 'ema_trend', 'momentum', 'mean_reversion']
-
+import { useState } from "react";
+const STRATEGIES = ["sma_crossover", "ema_trend", "momentum", "mean_reversion"];
 export default function BacktestForm({ onSubmit, loading }) {
   const [form, setForm] = useState({
-    ticker: 'BTC-USD',
-    start_date: '2023-01-01',
-    end_date: '2024-01-01',
+    ticker: "BTC-USD",
+    start_date: "2023-01-01",
+    end_date: "2024-01-01",
     initial_capital: 10000,
-    strategy: 'sma_crossover',
+    strategy: "sma_crossover",
     transaction_cost: 0.001,
     sma_fast: 20,
     sma_slow: 50,
-  })
-
+  });
   const update = (field) => (e) => {
-    const value = e.target.type === 'number' ? Number(e.target.value) : e.target.value
-    setForm((f) => ({ ...f, [field]: value }))
-  }
-
+    const value =
+      e.target.type === "number" ? Number(e.target.value) : e.target.value;
+    setForm((f) => ({ ...f, [field]: value }));
+  };
   return (
     <form
-      className="backtest-form"
+      className="space-y-4"
       onSubmit={(e) => {
-        e.preventDefault()
-        onSubmit(form)
+        e.preventDefault();
+        onSubmit(form);
       }}
     >
-      <label>
-        Ticker
-        <input value={form.ticker} onChange={update('ticker')} placeholder="BTC-USD" />
-      </label>
-
-      <label>
-        Start date
-        <input type="date" value={form.start_date} onChange={update('start_date')} />
-      </label>
-
-      <label>
-        End date
-        <input type="date" value={form.end_date} onChange={update('end_date')} />
-      </label>
-
-      <label>
-        Initial capital
-        <input type="number" min="1" value={form.initial_capital} onChange={update('initial_capital')} />
-      </label>
-
-      <label>
-        Strategy
-        <select value={form.strategy} onChange={update('strategy')}>
+      {" "}
+      <div>
+        {" "}
+        <label className="block text-xs font-medium text-slate-700 dark:text-zinc-300 mb-1">
+          Ticker
+        </label>{" "}
+        <input
+          className="w-full px-3 py-2 bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
+          value={form.ticker}
+          onChange={update("ticker")}
+          placeholder="BTC-USD"
+        />{" "}
+      </div>{" "}
+      <div className="grid grid-cols-2 gap-3">
+        {" "}
+        <div>
+          {" "}
+          <label className="block text-xs font-medium text-slate-700 dark:text-zinc-300 mb-1">
+            Start Date
+          </label>{" "}
+          <input
+            type="date"
+            className="w-full px-3 py-2 bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+            value={form.start_date}
+            onChange={update("start_date")}
+          />{" "}
+        </div>{" "}
+        <div>
+          {" "}
+          <label className="block text-xs font-medium text-slate-700 dark:text-zinc-300 mb-1">
+            End Date
+          </label>{" "}
+          <input
+            type="date"
+            className="w-full px-3 py-2 bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+            value={form.end_date}
+            onChange={update("end_date")}
+          />{" "}
+        </div>{" "}
+      </div>{" "}
+      <div>
+        {" "}
+        <label className="block text-xs font-medium text-slate-700 dark:text-zinc-300 mb-1">
+          Initial Capital ($)
+        </label>{" "}
+        <input
+          type="number"
+          min="1"
+          className="w-full px-3 py-2 bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+          value={form.initial_capital}
+          onChange={update("initial_capital")}
+        />{" "}
+      </div>{" "}
+      <div>
+        {" "}
+        <label className="block text-xs font-medium text-slate-700 dark:text-zinc-300 mb-1">
+          Strategy
+        </label>{" "}
+        <select
+          className="w-full px-3 py-2 bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+          value={form.strategy}
+          onChange={update("strategy")}
+        >
+          {" "}
           {STRATEGIES.map((s) => (
-            <option key={s} value={s}>{s}</option>
-          ))}
-        </select>
-      </label>
-
-      {form.strategy === 'sma_crossover' && (
-        <>
-          <label>
-            SMA fast
-            <input type="number" min="1" value={form.sma_fast} onChange={update('sma_fast')} />
-          </label>
-          <label>
-            SMA slow
-            <input type="number" min="1" value={form.sma_slow} onChange={update('sma_slow')} />
-          </label>
-        </>
-      )}
-
-      <label>
-        Transaction cost
-        <input type="number" step="0.0001" min="0" max="0.1" value={form.transaction_cost} onChange={update('transaction_cost')} />
-      </label>
-
-      <button type="submit" disabled={loading}>
-        {loading ? 'Running…' : 'Run Backtest'}
-      </button>
+            <option key={s} value={s}>
+              {s}
+            </option>
+          ))}{" "}
+        </select>{" "}
+      </div>{" "}
+      {form.strategy === "sma_crossover" && (
+        <div className="grid grid-cols-2 gap-3">
+          {" "}
+          <div>
+            {" "}
+            <label className="block text-xs font-medium text-slate-700 dark:text-zinc-300 mb-1">
+              SMA Fast
+            </label>{" "}
+            <input
+              type="number"
+              min="1"
+              className="w-full px-3 py-2 bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              value={form.sma_fast}
+              onChange={update("sma_fast")}
+            />{" "}
+          </div>{" "}
+          <div>
+            {" "}
+            <label className="block text-xs font-medium text-slate-700 dark:text-zinc-300 mb-1">
+              SMA Slow
+            </label>{" "}
+            <input
+              type="number"
+              min="1"
+              className="w-full px-3 py-2 bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              value={form.sma_slow}
+              onChange={update("sma_slow")}
+            />{" "}
+          </div>{" "}
+        </div>
+      )}{" "}
+      <div>
+        {" "}
+        <label className="block text-xs font-medium text-slate-700 dark:text-zinc-300 mb-1">
+          Transaction Cost (%)
+        </label>{" "}
+        <input
+          type="number"
+          step="0.0001"
+          min="0"
+          max="0.1"
+          className="w-full px-3 py-2 bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+          value={form.transaction_cost}
+          onChange={update("transaction_cost")}
+        />{" "}
+      </div>{" "}
+      <button
+        type="submit"
+        disabled={loading}
+        className="w-full mt-4 bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2.5 px-4 rounded-md transition-colors disabled:opacity-70 disabled:cursor-not-allowed text-sm flex items-center justify-center gap-2"
+      >
+        {" "}
+        {loading && (
+          <svg
+            className="animate-spin h-4 w-4 text-white"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+          >
+            {" "}
+            <circle
+              className="opacity-25"
+              cx="12"
+              cy="12"
+              r="10"
+              stroke="currentColor"
+              strokeWidth="4"
+            ></circle>{" "}
+            <path
+              className="opacity-75"
+              fill="currentColor"
+              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+            ></path>{" "}
+          </svg>
+        )}{" "}
+        {loading ? "Running Backtest…" : "Run Backtest"}{" "}
+      </button>{" "}
     </form>
-  )
+  );
 }
