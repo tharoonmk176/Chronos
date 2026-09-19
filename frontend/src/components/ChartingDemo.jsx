@@ -154,7 +154,7 @@ export default function ChartingDemo({ isDark }) {
                     <h3 className="text-lg font-bold text-slate-900 dark:text-zinc-50">1. TradingView Lightweight Charts</h3>
                     <p className="text-sm text-slate-500 dark:text-zinc-400">Fast, native HTML5 canvas with the exact TradingView aesthetic. Highly programmable for plotting custom algorithmic markers.</p>
                 </div>
-                <div className="w-full rounded-lg overflow-hidden border border-slate-200 dark:border-zinc-800" ref={chartContainerRef}></div>
+                <div className="w-full h-[400px] rounded-lg overflow-hidden border border-slate-200 dark:border-zinc-800" ref={chartContainerRef}></div>
             </div>
 
             <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl p-6 shadow-sm">
@@ -162,7 +162,7 @@ export default function ChartingDemo({ isDark }) {
                     <h3 className="text-lg font-bold text-slate-900 dark:text-zinc-50">2. Apache ECharts</h3>
                     <p className="text-sm text-slate-500 dark:text-zinc-400">Extremely robust, massive configuration options, built-in data zoom sliders, and smooth animations.</p>
                 </div>
-                <div className="w-full rounded-lg overflow-hidden border border-slate-200 dark:border-zinc-800 pt-4">
+                <div className="w-full h-[400px] rounded-lg overflow-hidden border border-slate-200 dark:border-zinc-800 pt-4">
                     <ReactECharts option={echartsOption} style={{ height: '400px', width: '100%' }} theme={isDark ? "dark" : "light"} />
                 </div>
             </div>
