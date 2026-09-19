@@ -637,5 +637,5 @@ async def list_portfolios(db: Session = Depends(get_db)):
     user = db.query(User).first()
     if not user:
         return {"portfolios": []}
-    portfolios = db.query(Portfolio).filter(Portfolio.user_id == user.id).all()
+    portfolios = db.query(Portfolio).filter(Portfolio.user_id == user.id).order_by(Portfolio.created_at.desc()).all()
     return {"portfolios": [{"id": p.id, "name": p.name, "created_at": p.created_at} for p in portfolios]}
