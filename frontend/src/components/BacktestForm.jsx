@@ -1,5 +1,7 @@
 import { useState } from "react";
 const STRATEGIES = ["sma_crossover", "ema_trend", "momentum", "mean_reversion"];
+const POPULAR_TICKERS = ['BTC-USD', 'ETH-USD', 'SOL-USD', 'SPY', 'QQQ', 'GLD', 'NVDA', 'AAPL', 'MSFT', 'AMZN', 'TSLA', 'META', 'GOOGL', 'JPM', 'V', 'WMT', 'JNJ'];
+
 export default function BacktestForm({ onSubmit, loading }) {
   const [form, setForm] = useState({
     ticker: "BTC-USD",
@@ -30,12 +32,29 @@ export default function BacktestForm({ onSubmit, loading }) {
         <label className="block text-xs font-medium text-slate-700 dark:text-zinc-300 mb-1">
           Ticker
         </label>{" "}
-        <input
-          className="w-full px-3 py-2 bg-slate-50 dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors"
-          value={form.ticker}
-          onChange={update("ticker")}
-          list="popular-tickers" placeholder="BTC-USD"
-        />{" "}
+        <div className="flex gap-2">
+          <select
+            className="w-full bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-md px-3 py-2 text-sm text-slate-900 dark:text-zinc-50 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+            value={POPULAR_TICKERS.includes(form.ticker) ? form.ticker : 'CUSTOM'}
+            onChange={(e) => {
+              if (e.target.value !== 'CUSTOM') update("ticker")(e);
+              else update("ticker")({ target: { value: '' } });
+            }}
+          >
+            {POPULAR_TICKERS.map(t => <option key={t} value={t}>{t}</option>)}
+            <option value="CUSTOM">Custom...</option>
+          </select>
+          {!POPULAR_TICKERS.includes(form.ticker) && (
+            <input
+              type="text"
+              className="w-full bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-800 rounded-md px-3 py-2 text-sm text-slate-900 dark:text-zinc-50 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 placeholder-slate-400"
+              value={form.ticker}
+              onChange={update("ticker")}
+              placeholder="e.g. AMC"
+              autoFocus
+            />
+          )}
+        </div>{" "}
       </div>{" "}
       <div className="grid grid-cols-2 gap-3">
         {" "}
