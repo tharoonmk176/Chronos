@@ -1146,18 +1146,23 @@ class WalkForwardAnalyzer:
             
             best_params = optimization_results[0]['parameters']
             
-            # Test on test data
-            test_start = test_data['date'].min().strftime('%Y-%m-%d')
-            test_end = test_data['date'].max().strftime('%Y-%m-%d')
+            # Test on test data (calculate indicators on historical buffer, then slice test window)
+            full_window = data.iloc[:i+testing_period].copy()
+            full_window = IndicatorCalculator.calculate_all_indicators(
+                full_window, 
+                sma_fast=best_params.get('sma_fast', 20),
+                sma_slow=best_params.get('sma_slow', 50)
+            )
             
-            test_results = run_backtest(
-                ticker=ticker,
-                start_date=test_start,
-                end_date=test_end,
+            ready_test_data = full_window.iloc[-testing_period:].copy()
+            
+            backtester = Backtester(
+                data=ready_test_data,
                 initial_capital=initial_capital,
                 strategy=strategy,
-                **best_params
+                transaction_cost=0.001
             )
+            test_results = backtester.run()
             
             walk_forward_result = {
                 'walk_number': walk_count,

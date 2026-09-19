@@ -9,12 +9,14 @@ import {
   YAxis,
   ComposedChart
 } from "recharts";
+import { useRegion } from "../RegionContext";
 
 export default function PortfolioChart({
   dates,
   portfolioValues,
   benchmarkValues,
 }) {
+  const { region } = useRegion();
   if (!dates?.length) return null;
   const data = dates.map((date, i) => ({
     date,
@@ -51,7 +53,7 @@ export default function PortfolioChart({
             tickLine={false}
             axisLine={false}
             domain={["auto", "auto"]}
-            tickFormatter={(value) => `$${value.toLocaleString()}`}
+            tickFormatter={(value) => `${region.currency}${ value.toLocaleString() }`}
           />
           <Tooltip 
             contentStyle={{ backgroundColor: 'var(--color-card)', borderColor: 'var(--color-border)', color: 'var(--color-foreground)', borderRadius: '0.5rem', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}

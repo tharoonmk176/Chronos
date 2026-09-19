@@ -1,6 +1,8 @@
 import React, { useEffect, useRef } from 'react';
+import { useRegion } from '../RegionContext';
 
 export default function MarketDashboard({ isDark }) {
+  const { region } = useRegion();
   const containerRef = useRef();
 
   useEffect(() => {
@@ -13,7 +15,7 @@ export default function MarketDashboard({ isDark }) {
       script.innerHTML = `
         {
           "autosize": true,
-          "symbol": "NASDAQ:NVDA",
+          "symbol": "${region.tvSymbol}",
           "interval": "D",
           "timezone": "Etc/UTC",
           "theme": "${isDark ? 'dark' : 'light'}",
@@ -26,7 +28,7 @@ export default function MarketDashboard({ isDark }) {
         }`;
       containerRef.current.appendChild(script);
     }
-  }, [isDark]);
+  }, [isDark, region]);
 
   return (
     <div className="w-full h-[700px] rounded-xl overflow-hidden border border-slate-200 dark:border-zinc-800 shadow-sm bg-white dark:bg-zinc-900">

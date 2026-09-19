@@ -9,8 +9,10 @@ import {
   YAxis,
   Area
 } from "recharts";
+import { useRegion } from "../RegionContext";
 
 export default function PriceChart({ data }) {
+  const { region } = useRegion();
   if (!data?.length) return null;
 
   const buys = data.filter((d) => d.signal === 1).map((d) => ({ date: d.date, close: d.close }));
@@ -45,7 +47,7 @@ export default function PriceChart({ data }) {
             tickLine={false}
             axisLine={false}
             domain={["auto", "auto"]} 
-            tickFormatter={(value) => `$${value}`}
+            tickFormatter={(value) => `${region.currency}${value}`}
           />
           <Tooltip 
             contentStyle={{ backgroundColor: 'var(--color-card)', borderColor: 'var(--color-border)', color: 'var(--color-foreground)', borderRadius: '0.5rem', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}

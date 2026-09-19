@@ -1,6 +1,8 @@
+import { useRegion } from "../RegionContext";
 import { ArrowUpRight, ArrowDownRight } from 'lucide-react';
 
 export default function TradesList({ trades }) {
+  const { region } = useRegion();
   if (!trades?.length)
     return (
       <div className="text-sm text-slate-500 dark:text-zinc-400 py-4 text-center">
@@ -67,7 +69,7 @@ export default function TradesList({ trades }) {
                   >
                     {" "}
                     {t.profit !== null && t.profit !== undefined
-                      ? `$${t.profit.toFixed(2)}`
+                      ? `${region.currency}${ t.profit.toFixed(2) }`
                       : "—"}{" "}
                   </td>{" "}
                 </tr>

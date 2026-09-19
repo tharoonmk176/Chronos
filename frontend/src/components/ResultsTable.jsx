@@ -1,3 +1,5 @@
+import React, { useContext } from "react";
+import { useRegion } from "../RegionContext";
 import { TrendingUp, TrendingDown, Activity, Percent, Crosshair, BarChart2 } from 'lucide-react';
 
 function fmt(n, suffix = "") {
@@ -37,6 +39,7 @@ function StatCard({
   );
 }
 export default function ResultsTable({ results }) {
+  const { region } = useRegion();
   if (!results) return null;
   const { summary, risk_metrics: risk, trade_statistics: trades } = results;
   const isProfit = summary.total_return_percent >= 0;

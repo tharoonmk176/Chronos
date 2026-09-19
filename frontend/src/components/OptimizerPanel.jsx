@@ -1,8 +1,10 @@
 import { useState } from "react";
+import { useRegion } from "../RegionContext";
 import { optimizeParameters } from "../api/client";
 const POPULAR_TICKERS = ['BTC-USD', 'ETH-USD', 'SOL-USD', 'SPY', 'QQQ', 'GLD', 'NVDA', 'AAPL', 'MSFT', 'AMZN', 'TSLA', 'META', 'GOOGL', 'JPM', 'V', 'WMT', 'JNJ'];
 
 export default function OptimizerPanel() {
+  const { region } = useRegion();
   const [form, setForm] = useState({
     ticker: "BTC-USD",
     start_date: "2022-01-01",

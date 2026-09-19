@@ -1,3 +1,5 @@
+import React, { useContext } from "react";
+import { useRegion } from "../RegionContext";
 import {
   AreaChart,
   Area,
@@ -9,6 +11,7 @@ import {
 } from "recharts";
 
 export default function DrawdownChart({ dates, portfolioValues }) {
+  const { region } = useRegion();
   if (!dates?.length) return null;
   
   let runningMax = -Infinity;

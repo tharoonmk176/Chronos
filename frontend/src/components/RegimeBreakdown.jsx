@@ -1,4 +1,7 @@
+import React, { useContext } from "react";
+import { useRegion } from "../RegionContext";
 export default function RegimeBreakdown({ breakdown }) {
+  const { region } = useRegion();
   if (!breakdown || Object.keys(breakdown).length === 0) return null;
   const rows = Object.entries(breakdown);
   return (

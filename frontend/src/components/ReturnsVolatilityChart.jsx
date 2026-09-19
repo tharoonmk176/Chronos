@@ -1,3 +1,5 @@
+import React, { useContext } from "react";
+import { useRegion } from "../RegionContext";
 import {
   CartesianGrid,
   Line,
@@ -23,6 +25,7 @@ function rollingVolatility(data, window = 30) {
   return out;
 }
 export default function ReturnsVolatilityChart({ data }) {
+  const { region } = useRegion();
   if (!data?.length) return null;
   const vol = rollingVolatility(data);
   const chartData = data.map((d, i) => ({

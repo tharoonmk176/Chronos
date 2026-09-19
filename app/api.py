@@ -301,8 +301,75 @@ from dotenv import load_dotenv
 
 load_dotenv()
 genai.configure(api_key=os.environ.get("GEMINI_API_KEY"))
-model = genai.GenerativeModel("gemini-1.5-flash", system_instruction="You are an expert Quantitative Research Assistant for the Chronos Backtesting Platform. You help users analyze financial markets, trading strategies like SMA crossover and momentum, and risk metrics like Sharpe Ratio and Drawdown. Keep answers concise and helpful.")
+model = genai.GenerativeModel("gemini-flash-latest", system_instruction="You are an expert Quantitative Research Assistant for the Chronos Backtesting Platform. You help users analyze financial markets, trading strategies like SMA crossover and momentum, and risk metrics like Sharpe Ratio and Drawdown. Keep answers concise and helpful.")
 chat_session = None
+
+
+class WalkForwardRequest(BaseModel):
+    ticker: str
+    start_date: str
+    end_date: str
+    strategy: str
+    initial_capital: float
+
+class MonteCarloRequest(BaseModel):
+    ticker: str
+    start_date: str
+    end_date: str
+    strategy: str
+    initial_capital: float
+
+@router.post("/walk-forward")
+def walk_forward_analysis(payload: WalkForwardRequest):
+    res = engine.WalkForwardAnalyzer.run_walk_forward(
+        ticker=payload.ticker,
+        start_date=payload.start_date,
+        end_date=payload.end_date,
+        strategy=payload.strategy,
+        initial_capital=payload.initial_capital
+    )
+    return res
+
+@router.post("/monte-carlo")
+def monte_carlo_analysis(payload: MonteCarloRequest):
+    from app.service import _fetch_cached
+    data = _fetch_cached(payload.ticker, payload.start_date, payload.end_date)
+    engine.DataFetcher.validate_data(data)
+    data = engine.IndicatorCalculator.calculate_all_indicators(data, 20, 50)
+    
+    backtester = engine.Backtester(data, payload.initial_capital, 0.001, payload.strategy)
+    results = backtester.run()
+    
+    import pandas as pd
+    import numpy as np
+    portfolio = results['portfolio_values']
+    df = pd.DataFrame({'portfolio': portfolio})
+    returns_series = df['portfolio'].pct_change().dropna()
+    
+    mc_res = engine.MonteCarloSimulator.run_monte_carlo(
+        returns=returns_series,
+        initial_capital=payload.initial_capital
+    )
+    
+    # Generate 5 sample paths to render on frontend to not overload JSON
+    mean_return = returns_series.mean()
+    std_return = returns_series.std()
+    
+    days_ahead = 252
+    simulations = np.random.normal(mean_return, std_return, size=(days_ahead, 5))
+    cumulative_returns = np.cumprod(1 + simulations, axis=0)
+    paths = payload.initial_capital * cumulative_returns
+    
+    chart_data = []
+    for day in range(days_ahead):
+        point = {"day": day}
+        for path_idx in range(5):
+            point[f"path_{path_idx}"] = float(paths[day, path_idx])
+        chart_data.append(point)
+        
+    mc_res["chart_data"] = chart_data
+    
+    return mc_res
 
 @router.post("/chat")
 def chat_with_bot(payload: ChatRequest):

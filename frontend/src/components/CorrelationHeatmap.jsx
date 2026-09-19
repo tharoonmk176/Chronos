@@ -1,4 +1,6 @@
+import React, { useContext } from "react";
 import { useState } from "react";
+import { useRegion } from "../RegionContext";
 import { getCorrelation } from "../api/client";
 function colorFor(value) {
   if (value === undefined || value === null) return "var(--color-background)";
@@ -13,6 +15,7 @@ function textColorFor(value) {
   return intensity > 0.6 ? "#fff" : "var(--color-foreground)";
 }
 export default function CorrelationHeatmap() {
+  const { region } = useRegion();
   const [tickers, setTickers] = useState("BTC-USD, GLD, NVDA");
   const [startDate, setStartDate] = useState("2023-01-01");
   const [endDate, setEndDate] = useState("2024-01-01");

@@ -1,4 +1,6 @@
 import { useState, useEffect } from "react";
+import { useRegion, regionsData } from "./RegionContext";
+import { Globe } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import BacktestForm from "./components/BacktestForm";
 import PortfolioChart from "./components/PortfolioChart";
@@ -12,11 +14,14 @@ import CorrelationHeatmap from "./components/CorrelationHeatmap";
 import OptimizerPanel from "./components/OptimizerPanel";
 import MarketDashboard from "./components/MarketDashboard";
 import Chatbot from "./components/Chatbot";
+import AdvancedTechnicalChart from "./components/AdvancedTechnicalChart";
+import LabsDashboard from "./components/LabsDashboard";
 import AuthPanel from "./components/AuthPanel";
 import { clearToken } from "./api/client";
 import { loggedIn, loggedOut } from "./store/authSlice";
 import { runBacktestFlow } from "./store/backtestSlice";
 function App() {
+  const { region, setRegion } = useRegion();
   const dispatch = useDispatch();
   const isAuthenticated = useSelector((s) => s.auth.isAuthenticated);
   const { results, indicators, regime, loading, statusMessage, error } =
@@ -24,6 +29,7 @@ function App() {
   const [activeMainTab, setActiveMainTab] = useState("backtest");
   const [activeSubTab, setActiveSubTab] = useState("overview");
   const [isDark, setIsDark] = useState(false);
+  const [labsForm, setLabsForm] = useState({ ticker: "BTC-USD", start_date: "2023-01-01", end_date: "2024-01-01", initial_capital: 10000, strategy: "sma_crossover", transaction_cost: 0.001, sma_fast: 20, sma_slow: 50 });
   useEffect(() => {
     if (document.documentElement.classList.contains("dark")) setIsDark(true);
   }, []);
@@ -76,7 +82,7 @@ function App() {
         </div>{" "}
         <div className="hidden md:flex items-center gap-1 mx-8 bg-slate-100 dark:bg-zinc-800 p-1 rounded-lg">
           {" "}
-          {["backtest", "optimizer", "correlation", "market"].map((tab) => (
+          {["backtest", "optimizer", "correlation", "labs", "market"].map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveMainTab(tab)}
@@ -88,6 +94,26 @@ function App() {
           ))}{" "}
         </div>{" "}
         <div className="flex items-center gap-4">
+
+          <div className="relative group">
+            <div className="flex items-center gap-2 bg-slate-100 dark:bg-zinc-800 hover:bg-slate-200 dark:hover:bg-zinc-700 px-3 py-1.5 rounded-full cursor-pointer transition-colors border border-slate-200 dark:border-zinc-700">
+              <Globe className="h-4 w-4 text-indigo-500" />
+              <span className="text-xs font-semibold text-slate-700 dark:text-slate-200">{region.name} ({region.currency})</span>
+            </div>
+            <div className="absolute right-0 top-full mt-2 w-56 bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 overflow-hidden">
+              {regionsData.map(r => (
+                <button 
+                  key={r.id} 
+                  onClick={() => setRegion(r)}
+                  className="w-full text-left px-4 py-2.5 text-xs font-medium text-slate-700 dark:text-slate-300 hover:bg-indigo-50 dark:hover:bg-indigo-600 hover:text-indigo-700 dark:hover:text-white transition-colors flex justify-between items-center"
+                >
+                  <span>{r.name}</span>
+                  <span className="text-slate-400 dark:text-slate-500 opacity-80">{r.currency}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
           {" "}
           <button
             onClick={toggleDark}
@@ -131,6 +157,21 @@ function App() {
             <OptimizerPanel />{" "}
           </div>
         )}{" "}
+        
+        {activeMainTab === "labs" && (
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            <div className="lg:col-span-3 space-y-6">
+               <div className="bg-white dark:bg-zinc-900 rounded-xl border border-slate-200 dark:border-zinc-800 shadow-sm p-5 mb-6">
+                  <h2 className="text-sm font-bold text-slate-900 dark:text-zinc-50 uppercase tracking-wider mb-4">Labs Configuration</h2>
+                  <BacktestForm onSubmit={(form) => { setLabsForm(form); alert("Labs configured! Now click Run Simulation on the right."); }} loading={loading} />
+               </div>
+            </div>
+            <div className="lg:col-span-9 space-y-6">
+               <LabsDashboard form={labsForm} />
+            </div>
+          </div>
+        )}
+
         {activeMainTab === "correlation" && (
           <div className="max-w-5xl mx-auto bg-white dark:bg-zinc-900 rounded-xl border border-slate-200 dark:border-zinc-800 shadow-sm p-6">
             {" "}
@@ -187,7 +228,7 @@ function App() {
                   {/* Sub-navigation for Charts */}{" "}
                   <div className="border-b border-slate-200 dark:border-zinc-800 flex gap-6">
                     {" "}
-                    {["overview", "technical", "trades"].map((tab) => (
+                    {["overview", "technical", "advanced", "trades"].map((tab) => (
                       <button
                         key={tab}
                         onClick={() => setActiveSubTab(tab)}
@@ -231,7 +272,14 @@ function App() {
                       </div>{" "}
                     </div>
                   )}{" "}
-                  {activeSubTab === "trades" && (
+                  
+                      {activeSubTab === "advanced" && (
+                        <div className="bg-white dark:bg-zinc-900 p-5 rounded-xl border border-slate-200 dark:border-zinc-800 shadow-sm">
+                          <AdvancedTechnicalChart data={indicators?.data} />
+                        </div>
+                      )}
+
+                      {activeSubTab === "trades" && (
                     <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
                       {" "}
                       {regime && (

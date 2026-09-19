@@ -1,8 +1,10 @@
 import { useState } from "react";
+import { useRegion } from "../RegionContext";
 const STRATEGIES = ["sma_crossover", "ema_trend", "momentum", "mean_reversion"];
 const POPULAR_TICKERS = ['BTC-USD', 'ETH-USD', 'SOL-USD', 'SPY', 'QQQ', 'GLD', 'NVDA', 'AAPL', 'MSFT', 'AMZN', 'TSLA', 'META', 'GOOGL', 'JPM', 'V', 'WMT', 'JNJ'];
 
 export default function BacktestForm({ onSubmit, loading }) {
+  const { region } = useRegion();
   const [form, setForm] = useState({
     ticker: "BTC-USD",
     start_date: "2023-01-01",
