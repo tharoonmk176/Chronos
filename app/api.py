@@ -282,3 +282,19 @@ def _serialize(record: BacktestResult, db: Session) -> dict:
         "created_at": record.created_at.isoformat() if record.created_at else None,
         "completed_at": record.completed_at.isoformat() if record.completed_at else None,
     }
+
+
+from pydantic import BaseModel
+from typing import List
+
+class ChatMessage(BaseModel):
+    role: str
+    content: str
+
+class ChatRequest(BaseModel):
+    messages: List[ChatMessage]
+
+@router.post("/chat")
+def chat_with_bot(payload: ChatRequest):
+    # TODO: Connect to the actual LLM using the provided API key
+    return {"reply": "I am connected to the backend! Please tell me which provider this API key is for (OpenAI, Gemini, Anthropic, etc.) so I can hook it up."}

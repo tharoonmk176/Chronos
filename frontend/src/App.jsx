@@ -11,6 +11,7 @@ import TradesList from "./components/TradesList";
 import CorrelationHeatmap from "./components/CorrelationHeatmap";
 import OptimizerPanel from "./components/OptimizerPanel";
 import MarketDashboard from "./components/MarketDashboard";
+import Chatbot from "./components/Chatbot";
 import AuthPanel from "./components/AuthPanel";
 import { clearToken } from "./api/client";
 import { loggedIn, loggedOut } from "./store/authSlice";
