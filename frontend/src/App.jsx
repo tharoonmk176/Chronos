@@ -31,7 +31,7 @@ function App() {
     useSelector((s) => s.backtest);
   const [activeMainTab, setActiveMainTab] = useState("intel");
   const [activeSubTab, setActiveSubTab] = useState("overview");
-  const [isDark, setIsDark] = useState(false);
+  const [isDark, setIsDark] = useState(true);
   const [labsForm, setLabsForm] = useState({ ticker: "BTC-USD", start_date: "2023-01-01", end_date: "2024-01-01", initial_capital: 10000, strategy: "sma_crossover", transaction_cost: 0.001, sma_fast: 20, sma_slow: 50 });
   useEffect(() => {
     if (document.documentElement.classList.contains("dark")) setIsDark(true);
