@@ -462,6 +462,7 @@ async def upload_portfolio(
             # Avoid matching "Buy Date" as price
             p_idx = next((i for i, v in enumerate(row_vals) if 'price' in v or 'cost' in v or 'avg. buy' in v), -1)
             cp_idx = next((i for i, v in enumerate(row_vals) if 'current price' in v or 'cmp' in v), -1)
+            today_gain_idx = next((i for i, v in enumerate(row_vals) if 'today g/l' in v), -1)
             
             if t_idx != -1 and q_idx != -1 and p_idx != -1:
                 header_row_idx = idx
@@ -505,13 +506,21 @@ async def upload_portfolio(
                     fallback_cp = float(row.iloc[cp_idx])
             except:
                 pass
+                
+            fallback_tg = 0.0
+            try:
+                if today_gain_idx != -1:
+                    fallback_tg = float(row.iloc[today_gain_idx])
+            except:
+                pass
             
             parsed_items.append({
                 "ticker": ticker,
                 "quantity": qty,
                 "buy_price": price,
                 "purchase_date": date,
-                "fallback_current_price": fallback_cp
+                "fallback_current_price": fallback_cp,
+                "fallback_today_gain": fallback_tg
             })
             
         return {"message": "Success", "items": parsed_items}
@@ -543,7 +552,8 @@ async def save_portfolio(
                 quantity=item["quantity"],
                 buy_price=item["buy_price"],
                 purchase_date=item.get("purchase_date"),
-                fallback_current_price=item.get("fallback_current_price")
+                fallback_current_price=item.get("fallback_current_price"),
+                fallback_today_gain=item.get("fallback_today_gain")
             )
             db.add(pi)
             
@@ -607,8 +617,10 @@ async def get_portfolio(portfolio_id: str, db: Session = Depends(get_db)):
         
         ticker_data = live_data.get(item.ticker, {"current_price": 0.0, "prev_close": 0.0})
         
+        is_fallback = (ticker_data["current_price"] == 0.0)
+        
         current_price = ticker_data["current_price"]
-        if current_price == 0.0:
+        if is_fallback:
             current_price = clean_float(item.fallback_current_price, buy_p)
             
         prev_close = ticker_data["prev_close"]
@@ -618,6 +630,10 @@ async def get_portfolio(portfolio_id: str, db: Session = Depends(get_db)):
         invested = qty * buy_p
         current_value = qty * current_price
         
+        today_gain = qty * (current_price - prev_close)
+        if is_fallback:
+            today_gain = clean_float(getattr(item, 'fallback_today_gain', 0.0), 0.0)
+
         holdings.append({
             "id": item.id,
             "ticker": item.ticker,
@@ -629,7 +645,7 @@ async def get_portfolio(portfolio_id: str, db: Session = Depends(get_db)):
             "invested_amount": invested,
             "total_gain": current_value - invested,
             "total_gain_pct": ((current_value - invested) / invested * 100) if invested > 0 else 0,
-            "today_gain": qty * (current_price - prev_close),
+            "today_gain": today_gain,
             "today_gain_pct": ((current_price - prev_close) / prev_close * 100) if prev_close > 0 else 0
         })
         
