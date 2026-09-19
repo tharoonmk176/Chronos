@@ -1,3 +1,4 @@
+import ChartingDemo from './components/ChartingDemo';
 import PortfolioDashboard from './components/PortfolioDashboard';
 import { useState, useEffect } from "react";
 import { useRegion, regionsData } from "./RegionContext";
@@ -183,6 +184,7 @@ function App() {
           </div>
         )}{" "}
         
+        {activeMainTab === "charts" && <ChartingDemo isDark={isDark} />}
         {activeMainTab === "market" && (
           <div className="max-w-6xl mx-auto space-y-6">
             <MarketDashboard isDark={isDark} />
