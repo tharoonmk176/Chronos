@@ -554,6 +554,17 @@ async def get_portfolio(portfolio_id: str, db: Session = Depends(get_db)):
     # Fetch live data
     tickers = list(set([item.ticker for item in items]))
     live_data = {}
+
+    import math
+    def clean_float(v, fallback):
+        try:
+            val = float(v)
+            if math.isnan(val) or math.isinf(val):
+                return float(fallback)
+            return val
+        except (ValueError, TypeError):
+            return float(fallback)
+
     if tickers:
         try:
             # yfinance bulk download
@@ -565,37 +576,50 @@ async def get_portfolio(portfolio_id: str, db: Session = Depends(get_db)):
                     df = data[ticker]
                     
                 if not df.empty:
-                    current_price = df['Close'].iloc[-1]
-                    prev_close = df['Close'].iloc[-2] if len(df) > 1 else current_price
-                    live_data[ticker] = {
-                        "current_price": float(current_price),
-                        "prev_close": float(prev_close)
-                    }
+                    close_col = df['Close'].dropna()
+                    if not close_col.empty:
+                        current_price = close_col.iloc[-1]
+                        prev_close = close_col.iloc[-2] if len(close_col) > 1 else current_price
+                        
+                        # We use 0.0 as a temporary fallback, it gets overwritten by buy_price later
+                        live_data[ticker] = {
+                            "current_price": clean_float(current_price, 0.0),
+                            "prev_close": clean_float(prev_close, 0.0)
+                        }
         except Exception as e:
             print("yfinance error:", e)
             
     # Compile response
     holdings = []
     for item in items:
-        ticker_data = live_data.get(item.ticker, {"current_price": item.buy_price, "prev_close": item.buy_price})
-        current_price = ticker_data["current_price"]
-        prev_close = ticker_data["prev_close"]
+        buy_p = clean_float(item.buy_price, 0.0)
+        qty = clean_float(item.quantity, 0.0)
         
-        invested = item.quantity * item.buy_price
-        current_value = item.quantity * current_price
+        ticker_data = live_data.get(item.ticker, {"current_price": buy_p, "prev_close": buy_p})
+        
+        current_price = ticker_data["current_price"]
+        if current_price == 0.0:
+            current_price = buy_p
+            
+        prev_close = ticker_data["prev_close"]
+        if prev_close == 0.0:
+            prev_close = current_price
+        
+        invested = qty * buy_p
+        current_value = qty * current_price
         
         holdings.append({
             "id": item.id,
             "ticker": item.ticker,
-            "quantity": item.quantity,
-            "buy_price": item.buy_price,
+            "quantity": qty,
+            "buy_price": buy_p,
             "purchase_date": item.purchase_date,
             "current_price": current_price,
             "current_value": current_value,
             "invested_amount": invested,
             "total_gain": current_value - invested,
             "total_gain_pct": ((current_value - invested) / invested * 100) if invested > 0 else 0,
-            "today_gain": item.quantity * (current_price - prev_close),
+            "today_gain": qty * (current_price - prev_close),
             "today_gain_pct": ((current_price - prev_close) / prev_close * 100) if prev_close > 0 else 0
         })
         
