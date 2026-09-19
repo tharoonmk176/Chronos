@@ -490,7 +490,7 @@ async def upload_portfolio(
                 continue
                 
             if ticker.isalpha() and not '.' in ticker:
-                indian_stocks = ['RELIANCE', 'TCS', 'HDFCBANK', 'ICICIBANK', 'INFY', 'BHARTIARTL', 'ITC', 'SBIN', 'LT', 'HINDUNILVR', 'KOTAKBANK', 'AXISBANK', 'BAJFINANCE', 'MARUTI', 'SUNPHARMA', 'HCLTECH', 'ASIANPAINT', 'TATAMOTORS', 'ULTRACEMCO', 'TITAN']
+                indian_stocks = ['RELIANCE', 'TCS', 'HDFCBANK', 'ICICIBANK', 'INFY', 'BHARTIARTL', 'ITC', 'SBIN', 'LT', 'HINDUNILVR', 'KOTAKBANK', 'AXISBANK', 'BAJFINANCE', 'MARUTI', 'SUNPHARMA', 'TITAN', 'ULTRACEMCO', 'NTPC', 'POWERGRID', 'M&M', 'TATAMOTORS', 'ADANIENT', 'ADANIPORTS', 'WIPRO', 'TECHM', 'HCLTECH', 'ONGC', 'COALINDIA', 'TATASTEEL', 'JSWSTEEL', 'HINDALCO', 'GRASIM', 'ASIANPAINT', 'NESTLEIND', 'BAJAJFINSV', 'DIVISLAB', 'DRREDDY', 'CIPLA', 'EICHERMOT', 'APOLLOHOSP', 'TRENT', 'JIOFIN', 'ZOMATO', 'IRFC', 'SUZLON', 'PAYTM', 'POLYCAB', 'DIXON', 'PIIND', 'CDSL']
                 if ticker in indian_stocks:
                     ticker += '.NS'
                     
