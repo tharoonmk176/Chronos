@@ -451,14 +451,16 @@ async def upload_portfolio(
         date_col_idx = -1
 
         for idx, row in df.iterrows():
-            if idx > 50: # Give up after 50 rows
+            if idx > 50:
                 break
                 
             row_vals = [str(v).lower().strip() for v in row.values]
             
             t_idx = next((i for i, v in enumerate(row_vals) if 'ticker' in v or 'symbol' in v), -1)
             q_idx = next((i for i, v in enumerate(row_vals) if 'quantity' in v or 'shares' in v or 'qty' in v), -1)
-            p_idx = next((i for i, v in enumerate(row_vals) if 'price' in v or 'cost' in v or 'buy' in v), -1)
+            
+            # Avoid matching "Buy Date" as price
+            p_idx = next((i for i, v in enumerate(row_vals) if 'price' in v or 'cost' in v or 'avg. buy' in v), -1)
             
             if t_idx != -1 and q_idx != -1 and p_idx != -1:
                 header_row_idx = idx
@@ -478,20 +480,16 @@ async def upload_portfolio(
             if not ticker or ticker.lower() == 'nan':
                 continue
                 
-            # Basic validation
             try:
                 qty = float(row.iloc[qty_col_idx])
                 price = float(row.iloc[price_col_idx])
             except (ValueError, TypeError):
-                continue # Skip rows with invalid numbers
+                continue
                 
             if pd.isna(qty) or pd.isna(price) or qty == 0 or price == 0:
                 continue
                 
-            # If it doesn't have a suffix and looks like an Indian stock, we might want to append .NS but we'll leave it to the user.
-            # Actually, to make the demo work nicely, if it's RELIANCE, TCS etc we can append .NS if not present.
             if ticker.isalpha() and not '.' in ticker:
-                # Naive heuristic: if it's an Indian stock, add .NS. (Chronos can be extended with a real instrument master later)
                 indian_stocks = ['RELIANCE', 'TCS', 'HDFCBANK', 'ICICIBANK', 'INFY', 'BHARTIARTL', 'ITC', 'SBIN', 'LT', 'HINDUNILVR', 'KOTAKBANK', 'AXISBANK', 'BAJFINANCE', 'MARUTI', 'SUNPHARMA', 'HCLTECH', 'ASIANPAINT', 'TATAMOTORS', 'ULTRACEMCO', 'TITAN']
                 if ticker in indian_stocks:
                     ticker += '.NS'
