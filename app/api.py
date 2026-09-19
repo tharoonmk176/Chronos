@@ -588,7 +588,7 @@ async def get_portfolio(portfolio_id: str, db: Session = Depends(get_db)):
     if tickers:
         try:
             # yfinance bulk download
-            data = yf.download(tickers, period="5d", group_by="ticker", auto_adjust=False)
+            data = yf.download(tickers, period="5d", group_by="ticker", auto_adjust=False, threads=False)
             for ticker in tickers:
                 if len(tickers) == 1:
                     df = data
@@ -617,7 +617,12 @@ async def get_portfolio(portfolio_id: str, db: Session = Depends(get_db)):
         
         ticker_data = live_data.get(item.ticker, {"current_price": buy_p, "prev_close": buy_p})
         
+        is_fallback = (ticker_data["current_price"] == 0.0)
+        
         current_price = ticker_data["current_price"]
+        if is_fallback:
+            current_price = clean_float(getattr(item, 'fallback_current_price', buy_p), buy_p)
+            
         prev_close = ticker_data["prev_close"]
         if prev_close == 0.0:
             prev_close = current_price
@@ -626,6 +631,8 @@ async def get_portfolio(portfolio_id: str, db: Session = Depends(get_db)):
         current_value = qty * current_price
         
         today_gain = qty * (current_price - prev_close)
+        if is_fallback:
+            today_gain = clean_float(getattr(item, 'fallback_today_gain', 0.0), 0.0)
 
         holdings.append({
             "id": item.id,
