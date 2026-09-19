@@ -1,3 +1,5 @@
+import { ArrowUpRight, ArrowDownRight } from 'lucide-react';
+
 export default function TradesList({ trades }) {
   if (!trades?.length)
     return (

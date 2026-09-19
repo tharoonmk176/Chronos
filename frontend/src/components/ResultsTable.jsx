@@ -1,33 +1,38 @@
+import { TrendingUp, TrendingDown, Activity, Percent, Crosshair, BarChart2 } from 'lucide-react';
+
 function fmt(n, suffix = "") {
   if (n === null || n === undefined) return "—";
   return `${Number(n).toLocaleString(undefined, { maximumFractionDigits: 2 })}${suffix}`;
 }
+
 function StatCard({
   label,
   value,
   subtext = null,
   highlight = false,
   negative = false,
+  icon: Icon
 }) {
   return (
     <div
-      className={`p-5 rounded-xl border ${highlight ? "bg-indigo-50 dark:bg-indigo-500/20 border-indigo-100 dark:border-indigo-500/30 " : "bg-white dark:bg-zinc-900 border-slate-200 dark:border-zinc-800 "} shadow-sm flex flex-col`}
+      className={`p-5 rounded-xl border transition-all hover:-translate-y-1 hover:shadow-md ${highlight ? "bg-indigo-50 dark:bg-indigo-500/20 border-indigo-100 dark:border-indigo-500/30 " : "bg-white dark:bg-zinc-900 border-slate-200 dark:border-zinc-800 "} shadow-sm flex flex-col`}
     >
-      {" "}
-      <span className="text-xs font-medium text-slate-500 dark:text-zinc-400 uppercase tracking-wider mb-1">
-        {label}
-      </span>{" "}
+      <div className="flex items-center justify-between mb-2">
+        <span className="text-xs font-semibold text-slate-500 dark:text-zinc-400 uppercase tracking-wider">
+          {label}
+        </span>
+        {Icon && <Icon className={`w-4 h-4 ${highlight ? 'text-indigo-500' : 'text-slate-400 dark:text-zinc-500'}`} />}
+      </div>
       <div className="flex items-baseline gap-2">
-        {" "}
         <span
           className={`text-2xl font-bold tracking-tight ${negative ? "text-red-600 dark:text-red-400" : "text-slate-900 dark:text-zinc-50 "}`}
         >
           {value}
-        </span>{" "}
-      </div>{" "}
+        </span>
+      </div>
       {subtext && (
-        <span className="text-xs text-slate-400 mt-1">{subtext}</span>
-      )}{" "}
+        <span className="text-xs font-medium text-slate-400 dark:text-zinc-500 mt-1">{subtext}</span>
+      )}
     </div>
   );
 }
@@ -51,28 +56,28 @@ export default function ResultsTable({ results }) {
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
         {" "}
         <StatCard
-          label="Total Return"
+          label="Total Return" icon={Activity}
           value={fmt(summary.total_return_percent, "%")}
           subtext={`Final: ${fmt(summary.final_value, " $")}`}
           negative={!isProfit}
           highlight={true}
         />{" "}
         <StatCard
-          label="Annualized"
+          label="Annualized" icon={TrendingUp}
           value={fmt(summary.annualized_return_percent, "%")}
         />{" "}
         <StatCard
-          label="Sharpe Ratio"
+          label="Sharpe Ratio" icon={BarChart2}
           value={fmt(risk.sharpe_ratio)}
           subtext={`Vol: ${fmt(risk.volatility_percent, "%")}`}
         />{" "}
         <StatCard
-          label="Max Drawdown"
+          label="Max Drawdown" icon={TrendingDown}
           value={fmt(risk.max_drawdown_percent, "%")}
           negative={true}
         />{" "}
         <StatCard
-          label="Win Rate"
+          label="Win Rate" icon={Crosshair}
           value={fmt(trades.win_rate_percent, "%")}
           subtext={`${trades.total_trades} total trades`}
         />{" "}
