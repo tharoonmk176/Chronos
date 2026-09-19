@@ -66,3 +66,6 @@ class RegimeRequest(BaseModel):
     end_date: str
     strategy: str = "sma_crossover"
     initial_capital: float = 10000
+    transaction_cost: float = 0.001
+    sma_fast: int = 20
+    sma_slow: int = 50

@@ -633,7 +633,9 @@ class Backtester:
         for i in range(len(self.data)):
             date = self.data['date'].iloc[i]
             price = self.data['close'].iloc[i]
-            signal = self.data['signal'].iloc[i]
+            
+            # Shift signal by 1 day to prevent look-ahead bias (execute at today's close based on yesterday's signal)
+            signal = self.data['signal'].iloc[i-1] if i > 0 else 0
             
             # BUY signal
             if signal == 1 and self.position_manager.position_size == 0:
@@ -642,6 +644,10 @@ class Backtester:
             
             # SELL signal
             elif signal == -1 and self.position_manager.position_size > 0:
+                self.position_manager.execute_sell(str(date.date()), price)
+                
+            # Force close any open position on the absolute final day to realize PnL
+            if i == len(self.data) - 1 and self.position_manager.position_size > 0:
                 self.position_manager.execute_sell(str(date.date()), price)
             
             # Record portfolio value
@@ -691,12 +697,15 @@ class Backtester:
         avg_profit = (total_profit / total_trades) if total_trades > 0 else 0
         
         # Annualized return
-        days = len(self.data)
-        years = days / 252
+        days_elapsed = (self.dates[-1] - self.dates[0]).days if len(self.dates) > 1 else len(self.data)
+        years = days_elapsed / 365.25 if days_elapsed > 0 else 1
+        trading_days_per_year = len(self.data) / years if years > 0 else 252
         annualized_return = ((final_value / self.initial_capital) ** (1/years) - 1) * 100 if years > 0 else 0
         
-        # Benchmark (Buy & Hold)
-        benchmark_return = (self.data['close'].iloc[-1] - self.data['close'].iloc[0]) / self.data['close'].iloc[0] * 100
+        # Benchmark (Buy & Hold) - Incorporate exact transaction costs for initial buy and final sell
+        bench_cost_basis = self.data['close'].iloc[0] * (1 + self.position_manager.transaction_cost)
+        bench_proceeds = self.data['close'].iloc[-1] * (1 - self.position_manager.transaction_cost)
+        benchmark_return = (bench_proceeds - bench_cost_basis) / bench_cost_basis * 100
         benchmark_value = self.initial_capital * (1 + benchmark_return / 100)
         
         return {
@@ -759,8 +768,11 @@ class CorrelationAnalyzer:
         returns_dict = {}
         
         for asset_name, data in assets_data.items():
-            returns_dict[asset_name] = data['close'].pct_change()
+            # Align by date index to prevent weekend desync between crypto and stocks
+            df_temp = data.set_index('date')
+            returns_dict[asset_name] = df_temp['close'].pct_change()
         
+        # pd.DataFrame automatically aligns Series by their datetime index
         returns_df = pd.DataFrame(returns_dict)
         correlation_matrix = returns_df.corr()
         

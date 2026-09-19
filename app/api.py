@@ -187,8 +187,15 @@ def regime_analysis(request: RegimeRequest):
     try:
         data = _fetch_cached(request.ticker, request.start_date, request.end_date)
         engine.DataFetcher.validate_data(data)
+        
+        # Respect user settings instead of defaulting
+        data['sma_fast'] = data['close'].rolling(window=request.sma_fast).mean()
+        data['sma_slow'] = data['close'].rolling(window=request.sma_slow).mean()
         data = engine.IndicatorCalculator.calculate_all_indicators(data.copy())
-        results = engine.Backtester(data, request.initial_capital, strategy=request.strategy).run()
+        
+        backtester = engine.Backtester(data, request.initial_capital, strategy=request.strategy)
+        backtester.position_manager.transaction_cost = request.transaction_cost
+        results = backtester.run()
         breakdown = engine.MarketRegimeAnalyzer.analyze_by_regime(results, data)
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
