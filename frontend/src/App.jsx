@@ -1,4 +1,3 @@
-import ChartingDemo from './components/ChartingDemo';
 import PortfolioDashboard from './components/PortfolioDashboard';
 import { useState, useEffect } from "react";
 import { useRegion, regionsData } from "./RegionContext";
@@ -85,7 +84,7 @@ function App() {
         </div>{" "}
         <div className="hidden md:flex items-center gap-1 mx-8 bg-slate-100 dark:bg-zinc-800 p-1 rounded-lg">
           {" "}
-          {["portfolio", "intel", "backtest", "optimizer", "correlation", "labs", "charts", "market"].map((tab) => (
+          {["portfolio", "intel", "backtest", "optimizer", "correlation", "labs", "market"].map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveMainTab(tab)}
@@ -184,8 +183,7 @@ function App() {
           </div>
         )}{" "}
         
-        {activeMainTab === "charts" && <ChartingDemo isDark={isDark} />}
-        {activeMainTab === "market" && (
+                {activeMainTab === "market" && (
           <div className="max-w-6xl mx-auto space-y-6">
             <MarketDashboard isDark={isDark} />
           </div>
