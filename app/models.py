@@ -78,5 +78,6 @@ class PortfolioItem(Base):
     ticker = Column(String, nullable=False)
     quantity = Column(Float, nullable=False)
     buy_price = Column(Float, nullable=False)
+    fallback_current_price = Column(Float, nullable=True)
     purchase_date = Column(String, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)

@@ -461,6 +461,7 @@ async def upload_portfolio(
             
             # Avoid matching "Buy Date" as price
             p_idx = next((i for i, v in enumerate(row_vals) if 'price' in v or 'cost' in v or 'avg. buy' in v), -1)
+            cp_idx = next((i for i, v in enumerate(row_vals) if 'current price' in v or 'cmp' in v), -1)
             
             if t_idx != -1 and q_idx != -1 and p_idx != -1:
                 header_row_idx = idx
@@ -498,11 +499,19 @@ async def upload_portfolio(
             if date == 'nan' or date == 'NaT':
                 date = None
             
+            fallback_cp = price
+            try:
+                if cp_idx != -1:
+                    fallback_cp = float(row.iloc[cp_idx])
+            except:
+                pass
+            
             parsed_items.append({
                 "ticker": ticker,
                 "quantity": qty,
                 "buy_price": price,
-                "purchase_date": date
+                "purchase_date": date,
+                "fallback_current_price": fallback_cp
             })
             
         return {"message": "Success", "items": parsed_items}
@@ -533,7 +542,8 @@ async def save_portfolio(
                 ticker=item["ticker"],
                 quantity=item["quantity"],
                 buy_price=item["buy_price"],
-                purchase_date=item.get("purchase_date")
+                purchase_date=item.get("purchase_date"),
+                fallback_current_price=item.get("fallback_current_price")
             )
             db.add(pi)
             
@@ -595,11 +605,11 @@ async def get_portfolio(portfolio_id: str, db: Session = Depends(get_db)):
         buy_p = clean_float(item.buy_price, 0.0)
         qty = clean_float(item.quantity, 0.0)
         
-        ticker_data = live_data.get(item.ticker, {"current_price": buy_p, "prev_close": buy_p})
+        ticker_data = live_data.get(item.ticker, {"current_price": 0.0, "prev_close": 0.0})
         
         current_price = ticker_data["current_price"]
         if current_price == 0.0:
-            current_price = buy_p
+            current_price = clean_float(item.fallback_current_price, buy_p)
             
         prev_close = ticker_data["prev_close"]
         if prev_close == 0.0:
