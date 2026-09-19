@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { createChart } from 'lightweight-charts';
+import * as lw from 'lightweight-charts';
+const { createChart } = lw;
 import ReactECharts from 'echarts-for-react';
 
 const generateData = () => {
@@ -63,14 +64,23 @@ export default function ChartingDemo({ isDark }) {
             
             chartRef.current = chart;
 
-            const candleSeries = chart.addCandlestickSeries({
+            let candleSeries;
+            const candleOptions = {
                 upColor: '#10b981',
                 downColor: '#ef4444',
                 borderDownColor: '#ef4444',
                 borderUpColor: '#10b981',
                 wickDownColor: '#ef4444',
                 wickUpColor: '#10b981',
-            });
+            };
+            
+            if (typeof chart.addCandlestickSeries === 'function') {
+                candleSeries = chart.addCandlestickSeries(candleOptions);
+            } else if (typeof chart.addSeries === 'function' && lw.CandlestickSeries) {
+                candleSeries = chart.addSeries(lw.CandlestickSeries, candleOptions);
+            } else {
+                throw new Error("Could not find a compatible method to add candlestick series. Lightweight-charts API might have changed.");
+            }
 
             // Use string dates for lightweight-charts to avoid timestamp timezone shifts
             candleSeries.setData(data.map(d => ({ time: d.timeStr, open: d.open, high: d.high, low: d.low, close: d.close })));
