@@ -85,7 +85,7 @@ function App() {
         </div>{" "}
         <div className="hidden md:flex items-center gap-1 mx-8 bg-slate-100 dark:bg-zinc-800 p-1 rounded-lg">
           {" "}
-          {["intel", "backtest", "optimizer", "correlation", "labs", "market"].map((tab) => (
+          {["portfolio", "intel", "backtest", "optimizer", "correlation", "labs", "charts", "market"].map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveMainTab(tab)}
