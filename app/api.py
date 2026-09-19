@@ -294,7 +294,28 @@ class ChatMessage(BaseModel):
 class ChatRequest(BaseModel):
     messages: List[ChatMessage]
 
+
+import os
+import google.generativeai as genai
+from dotenv import load_dotenv
+
+load_dotenv()
+genai.configure(api_key=os.environ.get("GEMINI_API_KEY"))
+model = genai.GenerativeModel("gemini-1.5-flash", system_instruction="You are an expert Quantitative Research Assistant for the Chronos Backtesting Platform. You help users analyze financial markets, trading strategies like SMA crossover and momentum, and risk metrics like Sharpe Ratio and Drawdown. Keep answers concise and helpful.")
+chat_session = None
+
 @router.post("/chat")
 def chat_with_bot(payload: ChatRequest):
-    # TODO: Connect to the actual LLM using the provided API key
-    return {"reply": "I am connected to the backend! Please tell me which provider this API key is for (OpenAI, Gemini, Anthropic, etc.) so I can hook it up."}
+    global chat_session
+    try:
+        if not chat_session:
+            chat_session = model.start_chat(history=[])
+        
+        # We assume the last message is the user's prompt
+        user_message = payload.messages[-1].content
+        response = chat_session.send_message(user_message)
+        
+        return {"reply": response.text}
+    except Exception as e:
+        return {"reply": f"Error connecting to Gemini API: {str(e)}"}
+
