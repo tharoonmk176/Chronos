@@ -571,10 +571,6 @@ async def get_portfolio(portfolio_id: str, db: Session = Depends(get_db)):
         
     items = db.query(PortfolioItem).filter(PortfolioItem.portfolio_id == portfolio_id).all()
     
-    # Fetch live data
-    tickers = list(set([item.ticker for item in items]))
-    live_data = {}
-
     import math
     def clean_float(v, fallback):
         try:
@@ -584,55 +580,20 @@ async def get_portfolio(portfolio_id: str, db: Session = Depends(get_db)):
             return val
         except (ValueError, TypeError):
             return float(fallback)
-
-    if tickers:
-        try:
-            # yfinance bulk download
-            data = yf.download(tickers, period="5d", group_by="ticker", auto_adjust=False, threads=False)
-            for ticker in tickers:
-                if len(tickers) == 1:
-                    df = data
-                else:
-                    df = data[ticker]
-                    
-                if not df.empty:
-                    close_col = df['Close'].dropna()
-                    if not close_col.empty:
-                        current_price = close_col.iloc[-1]
-                        prev_close = close_col.iloc[-2] if len(close_col) > 1 else current_price
-                        
-                        # We use 0.0 as a temporary fallback, it gets overwritten by buy_price later
-                        live_data[ticker] = {
-                            "current_price": clean_float(current_price, 0.0),
-                            "prev_close": clean_float(prev_close, 0.0)
-                        }
-        except Exception as e:
-            print("yfinance error:", e)
-            
-    # Compile response
+    
     holdings = []
     for item in items:
         buy_p = clean_float(item.buy_price, 0.0)
         qty = clean_float(item.quantity, 0.0)
         
-        ticker_data = live_data.get(item.ticker, {"current_price": buy_p, "prev_close": buy_p})
-        
-        is_fallback = (ticker_data["current_price"] == 0.0)
-        
-        current_price = ticker_data["current_price"]
-        if is_fallback:
-            current_price = clean_float(getattr(item, 'fallback_current_price', buy_p), buy_p)
-            
-        prev_close = ticker_data["prev_close"]
-        if prev_close == 0.0:
-            prev_close = current_price
+        # JUST READ DIRECTLY FROM THE UPLOADED STATIC VALUES
+        current_price = clean_float(getattr(item, 'fallback_current_price', buy_p), buy_p)
+        today_gain = clean_float(getattr(item, 'fallback_today_gain', 0.0), 0.0)
         
         invested = qty * buy_p
         current_value = qty * current_price
         
-        today_gain = qty * (current_price - prev_close)
-        if is_fallback:
-            today_gain = clean_float(getattr(item, 'fallback_today_gain', 0.0), 0.0)
+        prev_close = current_price - (today_gain / qty) if qty > 0 else current_price
 
         holdings.append({
             "id": item.id,
