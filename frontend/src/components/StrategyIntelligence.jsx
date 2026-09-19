@@ -44,12 +44,16 @@ const StrategyIntelligence = () => {
     if (selectedSituation !== 'All') {
       filtered = filtered.filter(s => s['Best-fit situation']?.includes(selectedSituation));
     }
+    if (selectedAssetClass !== 'All') {
+      filtered = filtered.filter(s => s['Primary asset class'] === selectedAssetClass);
+    }
     // Sort by 3M return (descending) as proxy for current profitability
     filtered.sort((a, b) => (parseFloat(b['3M return']) || 0) - (parseFloat(a['3M return']) || 0));
     return filtered;
   }, [strategies, selectedSituation, selectedAssetClass]);
 
-  const uniqueSituations = ["All", ...new Set(strategies.map(s => s['Best-fit situation']).filter(Boolean))];
+    const uniqueSituations = ["All", ...new Set(strategies.map(s => s['Best-fit situation']).filter(Boolean))];
+  const uniqueAssetClasses = ["All", ...new Set(strategies.map(s => s['Primary asset class']).filter(Boolean))];
 
   return (
     <div className="w-full pb-20">
@@ -82,10 +86,7 @@ const StrategyIntelligence = () => {
             value={selectedAssetClass}
             onChange={e => setSelectedAssetClass(e.target.value)}
           >
-            <option value="All">All Assets</option>
-            <option value="Equities">Equities</option>
-            <option value="Crypto">Crypto</option>
-            <option value="Futures">Futures</option>
+            {uniqueAssetClasses.map(ac => <option key={ac} value={ac}>{ac === 'All' ? 'All Assets' : ac}</option>)}
           </select>
         </div>
         <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl p-5 md:col-span-2 flex flex-col justify-center shadow-sm relative overflow-hidden">
@@ -115,6 +116,7 @@ const StrategyIntelligence = () => {
               <tr>
                 <th className="py-3 px-4 font-medium">Rank</th>
                 <th className="py-3 px-4 font-medium">Strategy Name</th>
+                <th className="py-3 px-4 font-medium">Asset Class</th>
                 <th className="py-3 px-4 font-medium">Style</th>
                 <th className="py-3 px-4 font-medium text-right">3M Ret</th>
                 <th className="py-3 px-4 font-medium text-right">1Y Sharpe</th>
@@ -125,7 +127,7 @@ const StrategyIntelligence = () => {
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-zinc-800">
               {loading ? (
-                <tr><td colSpan="8" className="p-8 text-center text-sm font-medium text-slate-500 dark:text-zinc-500">Loading intelligence data...</td></tr>
+                <tr><td colSpan="9" className="p-8 text-center text-sm font-medium text-slate-500 dark:text-zinc-500">Loading intelligence data...</td></tr>
               ) : filteredStrategies.map((strat, idx) => (
                 <tr key={idx} className="hover:bg-slate-50 dark:hover:bg-zinc-800/50 transition-colors group">
                   <td className="py-3 px-4 font-semibold text-slate-900 dark:text-zinc-50">#{idx + 1}</td>
@@ -133,7 +135,8 @@ const StrategyIntelligence = () => {
                     <div className="font-semibold text-indigo-600 dark:text-indigo-400">{strat.Strategy}</div>
                     <div className="text-[11px] font-medium text-slate-500 dark:text-zinc-500 mt-0.5">By {strat.Author} | {strat.Followers} follows</div>
                   </td>
-                  <td className="py-3 px-4 font-medium text-slate-600 dark:text-zinc-300">{strat.Style}</td>
+                  <td className="py-3 px-4 font-semibold text-slate-700 dark:text-zinc-200">{strat['Primary asset class']}</td>
+                  <td className="py-3 px-4 font-medium text-slate-600 dark:text-zinc-400">{strat.Style}</td>
                   <td className={`py-3 px-4 text-right font-bold ${getReturnColor(strat['3M return'])}`}>
                     {strat['3M return'] ? `${(parseFloat(strat['3M return'])).toFixed(2)}%` : '—'}
                   </td>
