@@ -62,3 +62,21 @@ class User(Base):
     email = Column(String, unique=True, nullable=False, index=True)
     hashed_password = Column(String, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
+
+class Portfolio(Base):
+    __tablename__ = "portfolios"
+    id = Column(String, primary_key=True, default=gen_uuid)
+    user_id = Column(String, ForeignKey("users.id"), nullable=False)
+    name = Column(String, nullable=False, default="My Portfolio")
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+class PortfolioItem(Base):
+    __tablename__ = "portfolio_items"
+    id = Column(String, primary_key=True, default=gen_uuid)
+    portfolio_id = Column(String, ForeignKey("portfolios.id"), nullable=False)
+    ticker = Column(String, nullable=False)
+    quantity = Column(Float, nullable=False)
+    buy_price = Column(Float, nullable=False)
+    purchase_date = Column(String, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)

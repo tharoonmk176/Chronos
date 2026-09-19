@@ -417,3 +417,167 @@ def get_intel_situations():
     except Exception as e:
         return {"error": str(e), "situations": []}
 
+
+
+from fastapi import File, UploadFile, Depends, Form
+from typing import Optional
+import pandas as pd
+import io
+import yfinance as yf
+from app.models import Portfolio, PortfolioItem
+
+@router.post("/portfolio/upload")
+async def upload_portfolio(
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    # current_user: User = Depends(get_current_user) # Omitting authentication for the initial UI testing unless strictly enforced
+):
+    # Parse file
+    content = await file.read()
+    filename = file.filename.lower()
+    
+    try:
+        if filename.endswith('.csv'):
+            df = pd.read_csv(io.BytesIO(content))
+        elif filename.endswith(('.xls', '.xlsx')):
+            df = pd.read_excel(io.BytesIO(content))
+        else:
+            return {"error": "Unsupported file format. Please upload CSV or Excel."}
+            
+        # Basic normalization: look for common column names
+        cols = {c.lower(): c for c in df.columns}
+        
+        ticker_col = next((cols[c] for c in cols if 'ticker' in c or 'symbol' in c), None)
+        qty_col = next((cols[c] for c in cols if 'quantity' in c or 'shares' in c or 'qty' in c), None)
+        price_col = next((cols[c] for c in cols if 'price' in c or 'cost' in c or 'buy' in c), None)
+        date_col = next((cols[c] for c in cols if 'date' in c), None)
+        
+        if not ticker_col or not qty_col or not price_col:
+            return {"error": "Could not identify required columns (Ticker, Quantity, Buy Price). Please ensure your file has clear headers."}
+            
+        parsed_items = []
+        for _, row in df.iterrows():
+            ticker = str(row[ticker_col]).strip().upper()
+            if not ticker or str(ticker).lower() == 'nan':
+                continue
+            qty = float(row[qty_col])
+            price = float(row[price_col])
+            date = str(row[date_col]) if date_col and pd.notnull(row[date_col]) else None
+            
+            parsed_items.append({
+                "ticker": ticker,
+                "quantity": qty,
+                "buy_price": price,
+                "purchase_date": date
+            })
+            
+        return {"message": "Success", "items": parsed_items}
+        
+    except Exception as e:
+        return {"error": str(e)}
+
+@router.post("/portfolio/save")
+async def save_portfolio(
+    payload: dict,
+    db: Session = Depends(get_db)
+):
+    try:
+        # Create portfolio
+        # For simplicity, assign to a default user or first user if auth is bypassed
+        user = db.query(User).first()
+        if not user:
+            return {"error": "No user found in DB"}
+            
+        portfolio = Portfolio(user_id=user.id, name=payload.get("name", "My Portfolio"))
+        db.add(portfolio)
+        db.commit()
+        db.refresh(portfolio)
+        
+        for item in payload.get("items", []):
+            pi = PortfolioItem(
+                portfolio_id=portfolio.id,
+                ticker=item["ticker"],
+                quantity=item["quantity"],
+                buy_price=item["buy_price"],
+                purchase_date=item.get("purchase_date")
+            )
+            db.add(pi)
+            
+        db.commit()
+        return {"message": "Portfolio saved successfully", "portfolio_id": portfolio.id}
+    except Exception as e:
+        db.rollback()
+        return {"error": str(e)}
+
+@router.get("/portfolio/{portfolio_id}")
+async def get_portfolio(portfolio_id: str, db: Session = Depends(get_db)):
+    portfolio = db.query(Portfolio).filter(Portfolio.id == portfolio_id).first()
+    if not portfolio:
+        return {"error": "Portfolio not found"}
+        
+    items = db.query(PortfolioItem).filter(PortfolioItem.portfolio_id == portfolio_id).all()
+    
+    # Fetch live data
+    tickers = list(set([item.ticker for item in items]))
+    live_data = {}
+    if tickers:
+        try:
+            # yfinance bulk download
+            data = yf.download(tickers, period="5d", group_by="ticker", auto_adjust=False)
+            for ticker in tickers:
+                if len(tickers) == 1:
+                    df = data
+                else:
+                    df = data[ticker]
+                    
+                if not df.empty:
+                    current_price = df['Close'].iloc[-1]
+                    prev_close = df['Close'].iloc[-2] if len(df) > 1 else current_price
+                    live_data[ticker] = {
+                        "current_price": float(current_price),
+                        "prev_close": float(prev_close)
+                    }
+        except Exception as e:
+            print("yfinance error:", e)
+            
+    # Compile response
+    holdings = []
+    for item in items:
+        ticker_data = live_data.get(item.ticker, {"current_price": item.buy_price, "prev_close": item.buy_price})
+        current_price = ticker_data["current_price"]
+        prev_close = ticker_data["prev_close"]
+        
+        invested = item.quantity * item.buy_price
+        current_value = item.quantity * current_price
+        
+        holdings.append({
+            "id": item.id,
+            "ticker": item.ticker,
+            "quantity": item.quantity,
+            "buy_price": item.buy_price,
+            "purchase_date": item.purchase_date,
+            "current_price": current_price,
+            "current_value": current_value,
+            "invested_amount": invested,
+            "total_gain": current_value - invested,
+            "total_gain_pct": ((current_value - invested) / invested * 100) if invested > 0 else 0,
+            "today_gain": item.quantity * (current_price - prev_close),
+            "today_gain_pct": ((current_price - prev_close) / prev_close * 100) if prev_close > 0 else 0
+        })
+        
+    return {
+        "portfolio": {
+            "id": portfolio.id,
+            "name": portfolio.name,
+            "created_at": portfolio.created_at
+        },
+        "holdings": holdings
+    }
+
+@router.get("/portfolios")
+async def list_portfolios(db: Session = Depends(get_db)):
+    user = db.query(User).first()
+    if not user:
+        return {"portfolios": []}
+    portfolios = db.query(Portfolio).filter(Portfolio.user_id == user.id).all()
+    return {"portfolios": [{"id": p.id, "name": p.name, "created_at": p.created_at} for p in portfolios]}

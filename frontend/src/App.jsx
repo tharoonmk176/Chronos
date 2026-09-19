@@ -1,3 +1,4 @@
+import PortfolioDashboard from './components/PortfolioDashboard';
 import { useState, useEffect } from "react";
 import { useRegion, regionsData } from "./RegionContext";
 import { Globe } from "lucide-react";
@@ -148,6 +149,7 @@ function App() {
 {" "}
       {/* Main Content Layout */}{" "}
       <div className="flex-1 max-w-[1600px] w-full mx-auto p-6">
+        {activeMainTab === "portfolio" && <PortfolioDashboard />}
         {activeMainTab === "intel" && <StrategyIntelligence />}
         {" "}
         {activeMainTab === "optimizer" && (
