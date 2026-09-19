@@ -429,8 +429,7 @@ from app.models import Portfolio, PortfolioItem
 @router.post("/portfolio/upload")
 async def upload_portfolio(
     file: UploadFile = File(...),
-    db: Session = Depends(get_db),
-    # current_user: User = Depends(get_current_user) # Omitting authentication for the initial UI testing unless strictly enforced
+    db: Session = Depends(get_db)
 ):
     # Parse file
     content = await file.read()
@@ -438,31 +437,68 @@ async def upload_portfolio(
     
     try:
         if filename.endswith('.csv'):
-            df = pd.read_csv(io.BytesIO(content))
+            df = pd.read_csv(io.BytesIO(content), header=None)
         elif filename.endswith(('.xls', '.xlsx')):
-            df = pd.read_excel(io.BytesIO(content))
+            df = pd.read_excel(io.BytesIO(content), header=None)
         else:
             return {"error": "Unsupported file format. Please upload CSV or Excel."}
             
-        # Basic normalization: look for common column names
-        cols = {c.lower(): c for c in df.columns}
-        
-        ticker_col = next((cols[c] for c in cols if 'ticker' in c or 'symbol' in c), None)
-        qty_col = next((cols[c] for c in cols if 'quantity' in c or 'shares' in c or 'qty' in c), None)
-        price_col = next((cols[c] for c in cols if 'price' in c or 'cost' in c or 'buy' in c), None)
-        date_col = next((cols[c] for c in cols if 'date' in c), None)
-        
-        if not ticker_col or not qty_col or not price_col:
-            return {"error": "Could not identify required columns (Ticker, Quantity, Buy Price). Please ensure your file has clear headers."}
+        # Dynamically find the header row
+        header_row_idx = -1
+        ticker_col_idx = -1
+        qty_col_idx = -1
+        price_col_idx = -1
+        date_col_idx = -1
+
+        for idx, row in df.iterrows():
+            if idx > 50: # Give up after 50 rows
+                break
+                
+            row_vals = [str(v).lower().strip() for v in row.values]
+            
+            t_idx = next((i for i, v in enumerate(row_vals) if 'ticker' in v or 'symbol' in v), -1)
+            q_idx = next((i for i, v in enumerate(row_vals) if 'quantity' in v or 'shares' in v or 'qty' in v), -1)
+            p_idx = next((i for i, v in enumerate(row_vals) if 'price' in v or 'cost' in v or 'buy' in v), -1)
+            
+            if t_idx != -1 and q_idx != -1 and p_idx != -1:
+                header_row_idx = idx
+                ticker_col_idx = t_idx
+                qty_col_idx = q_idx
+                price_col_idx = p_idx
+                date_col_idx = next((i for i, v in enumerate(row_vals) if 'date' in v), -1)
+                break
+                
+        if header_row_idx == -1:
+            return {"error": "Could not identify required columns (Ticker, Quantity, Buy Price). Please ensure your file has clear headers anywhere in the document."}
             
         parsed_items = []
-        for _, row in df.iterrows():
-            ticker = str(row[ticker_col]).strip().upper()
-            if not ticker or str(ticker).lower() == 'nan':
+        for idx in range(header_row_idx + 1, len(df)):
+            row = df.iloc[idx]
+            ticker = str(row.iloc[ticker_col_idx]).strip().upper()
+            if not ticker or ticker.lower() == 'nan':
                 continue
-            qty = float(row[qty_col])
-            price = float(row[price_col])
-            date = str(row[date_col]) if date_col and pd.notnull(row[date_col]) else None
+                
+            # Basic validation
+            try:
+                qty = float(row.iloc[qty_col_idx])
+                price = float(row.iloc[price_col_idx])
+            except (ValueError, TypeError):
+                continue # Skip rows with invalid numbers
+                
+            if pd.isna(qty) or pd.isna(price) or qty == 0 or price == 0:
+                continue
+                
+            # If it doesn't have a suffix and looks like an Indian stock, we might want to append .NS but we'll leave it to the user.
+            # Actually, to make the demo work nicely, if it's RELIANCE, TCS etc we can append .NS if not present.
+            if ticker.isalpha() and not '.' in ticker:
+                # Naive heuristic: if it's an Indian stock, add .NS. (Chronos can be extended with a real instrument master later)
+                indian_stocks = ['RELIANCE', 'TCS', 'HDFCBANK', 'ICICIBANK', 'INFY', 'BHARTIARTL', 'ITC', 'SBIN', 'LT', 'HINDUNILVR', 'KOTAKBANK', 'AXISBANK', 'BAJFINANCE', 'MARUTI', 'SUNPHARMA', 'HCLTECH', 'ASIANPAINT', 'TATAMOTORS', 'ULTRACEMCO', 'TITAN']
+                if ticker in indian_stocks:
+                    ticker += '.NS'
+                    
+            date = str(row.iloc[date_col_idx]).split(' ')[0] if date_col_idx != -1 and pd.notnull(row.iloc[date_col_idx]) else None
+            if date == 'nan' or date == 'NaT':
+                date = None
             
             parsed_items.append({
                 "ticker": ticker,
