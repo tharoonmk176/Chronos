@@ -252,6 +252,7 @@ function App() {
           </div>
         )}{" "}
       </div>{" "}
+      <Chatbot />
     </div>
   );
 }
