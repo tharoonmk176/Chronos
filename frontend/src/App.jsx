@@ -84,7 +84,7 @@ function App() {
         </div>{" "}
         <div className="hidden md:flex items-center gap-1 mx-8 bg-slate-100 dark:bg-zinc-800 p-1 rounded-lg">
           {" "}
-          {["portfolio", "intel", "backtest", "optimizer", "correlation", "labs", "market"].map((tab) => (
+          {["portfolio", "intel", "backtest", "optimizer", "labs", "market"].map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveMainTab(tab)}
@@ -153,14 +153,18 @@ function App() {
         {activeMainTab === "intel" && <StrategyIntelligence />}
         {" "}
         {activeMainTab === "optimizer" && (
-          <div className="max-w-4xl mx-auto bg-white dark:bg-zinc-900 rounded-xl border border-slate-200 dark:border-zinc-800 shadow-sm p-6">
-            {" "}
-            <h2 className="text-sm font-bold text-slate-900 dark:text-zinc-50 uppercase tracking-wider mb-4">
-              Grid Search Optimizer
-            </h2>{" "}
-            <OptimizerPanel />{" "}
+          <div className="max-w-5xl mx-auto flex flex-col gap-6">
+            <div className="bg-white dark:bg-zinc-900 rounded-xl border border-slate-200 dark:border-zinc-800 shadow-sm p-6">
+              <h2 className="text-sm font-bold text-slate-900 dark:text-zinc-50 uppercase tracking-wider mb-4">
+                Grid Search Optimizer
+              </h2>
+              <OptimizerPanel />
+            </div>
+            <div className="bg-white dark:bg-zinc-900 rounded-xl border border-slate-200 dark:border-zinc-800 shadow-sm p-6">
+              <CorrelationHeatmap />
+            </div>
           </div>
-        )}{" "}
+        )}
         
         {activeMainTab === "labs" && (
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
@@ -176,12 +180,7 @@ function App() {
           </div>
         )}
 
-        {activeMainTab === "correlation" && (
-          <div className="max-w-5xl mx-auto bg-white dark:bg-zinc-900 rounded-xl border border-slate-200 dark:border-zinc-800 shadow-sm p-6">
-            {" "}
-            <CorrelationHeatmap />{" "}
-          </div>
-        )}{" "}
+
         
                 {activeMainTab === "market" && (
           <div className="max-w-6xl mx-auto space-y-6">
