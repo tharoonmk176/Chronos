@@ -1,6 +1,7 @@
 import React, { useContext } from "react";
 import { useRegion } from "../RegionContext";
 import { TrendingUp, TrendingDown, Activity, Percent, Crosshair, BarChart2, Download } from 'lucide-react';
+import * as echarts from 'echarts';
 import html2pdf from 'html2pdf.js';
 
 function fmt(n, suffix = "") {
@@ -104,7 +105,7 @@ export default function ResultsTable({ results, indicators }) {
 
     // Generate Technical EChart
     let technicalChartHTML = '';
-    if (indicators && indicators.data && typeof echarts !== 'undefined') {
+    if (indicators && indicators.data) {
         const tempDiv = document.createElement('div');
         tempDiv.style.width = '800px';
         tempDiv.style.height = '400px';
@@ -124,6 +125,8 @@ export default function ResultsTable({ results, indicators }) {
                 { name: 'SMA Slow', type: 'line', data: indicators.data.map(d => d.sma_slow || null), color: '#ef4444', showSymbol: false, lineStyle: { width: 1.5, type: 'dashed' } }
             ]
         });
+        
+        await new Promise(r => setTimeout(r, 100)); // Ensure ECharts has time to render synchronously
         
         const dataURL = chart.getDataURL({ type: 'png', pixelRatio: 2 });
         technicalChartHTML = `<div style="text-align: center; margin-top: 15px;"><img src="${dataURL}" style="max-width: 100%; max-height: 250px; object-fit: contain; border: 1px solid #e2e8f0; border-radius: 8px;" /></div>`;
