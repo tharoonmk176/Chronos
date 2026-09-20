@@ -110,7 +110,7 @@ export default function Chatbot() {
                 </div>
 
                 {/* Bubble */}
-                <div className={`max-w-[75%] px-4 py-2.5 rounded-2xl text-[13px] leading-relaxed shadow-sm ${
+                <div className={`max-w-[75%] px-4 py-2.5 rounded-2xl text-[13px] leading-relaxed shadow-sm whitespace-pre-wrap ${
                   m.role === 'user' 
                     ? 'bg-indigo-600 text-white rounded-br-sm' 
                     : 'bg-white dark:bg-zinc-800/80 text-slate-700 dark:text-zinc-200 border border-slate-200/60 dark:border-zinc-700/50 rounded-bl-sm'
