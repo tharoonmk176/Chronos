@@ -1,6 +1,7 @@
 import React, { useContext } from "react";
 import { useRegion } from "../RegionContext";
 import { TrendingUp, TrendingDown, Activity, Percent, Crosshair, BarChart2, Download } from 'lucide-react';
+import html2pdf from 'html2pdf.js';
 
 function fmt(n, suffix = "") {
   if (n === null || n === undefined) return "—";
@@ -42,89 +43,19 @@ export default function ResultsTable({ results }) {
   const { region } = useRegion();
 
   const handleDownloadReport = () => {
-    if (!results) return;
-    const { summary, risk_metrics: risk, trade_statistics: trades, ticker, start_date, end_date, portfolio_values, dates, strategy } = results;
+    const element = document.getElementById('pdf-report-container');
+    if (!element) return;
     
-    // Create the HTML payload
-    let htmlContent = `
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Chronos Backtest Report - ${ticker}</title>
-    <script src="https://cdn.jsdelivr.net/npm/echarts/dist/echarts.min.js"></script>
-    <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; padding: 40px; color: #333; max-width: 1000px; margin: 0 auto; background-color: #f8fafc; }
-        .card { background: white; border-radius: 12px; padding: 24px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); margin-bottom: 24px; }
-        h1 { color: #4f46e5; margin-top: 0; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; }
-        .metric { border-left: 4px solid #4f46e5; padding-left: 12px; }
-        .label { font-size: 12px; color: #64748b; text-transform: uppercase; font-weight: bold; margin-bottom: 4px; }
-        .val { font-size: 24px; font-weight: bold; color: #0f172a; }
-        #chart { width: 100%; height: 400px; }
-    </style>
-</head>
-<body>
-    <div class="card">
-        <h1>Chronos Quantitative Backtest Report</h1>
-        <p><strong>Ticker:</strong> ${ticker || 'N/A'}</p>
-        <p><strong>Strategy:</strong> ${strategy || 'N/A'}</p>
-        <p><strong>Period:</strong> ${start_date || 'N/A'} to ${end_date || 'N/A'}</p>
-    </div>
-
-    <div class="card">
-        <h2>Equity Curve</h2>
-        <div id="chart"></div>
-    </div>
-
-    <div class="card grid">
-        <div class="metric"><div class="label">Total Return</div><div class="val">${fmt(summary.total_return_percent, "%")}</div></div>
-        <div class="metric"><div class="label">Annualized</div><div class="val">${fmt(summary.annualized_return_percent, "%")}</div></div>
-        <div class="metric"><div class="label">Initial Capital</div><div class="val">${region.currency}${fmt(summary.initial_capital)}</div></div>
-        <div class="metric"><div class="label">Final Value</div><div class="val">${region.currency}${fmt(summary.final_value)}</div></div>
-    </div>
-
-    <div class="card grid">
-        <div class="metric"><div class="label">Sharpe Ratio</div><div class="val">${fmt(risk.sharpe_ratio)}</div></div>
-        <div class="metric"><div class="label">Max Drawdown</div><div class="val">${fmt(risk.max_drawdown_percent, "%")}</div></div>
-        <div class="metric"><div class="label">Win Rate</div><div class="val">${fmt(trades.win_rate_percent, "%")}</div></div>
-        <div class="metric"><div class="label">Strategy vs Bench</div><div class="val">${fmt(summary.strategy_vs_benchmark, "%")}</div></div>
-    </div>
-
-    <script>
-        var chartDom = document.getElementById('chart');
-        var myChart = echarts.init(chartDom);
-        var dates = ${JSON.stringify(dates || [])};
-        var values = ${JSON.stringify(portfolio_values || [])};
-        
-        var option = {
-            tooltip: { trigger: 'axis' },
-            grid: { left: '3%', right: '4%', bottom: '3%', containLabel: true },
-            xAxis: { type: 'category', boundaryGap: false, data: dates },
-            yAxis: { type: 'value', min: 'dataMin' },
-            series: [{
-                name: 'Portfolio Value',
-                type: 'line',
-                data: values,
-                smooth: true,
-                lineStyle: { width: 2, color: '#4f46e5' },
-                areaStyle: { color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{offset: 0, color: 'rgba(79, 70, 229, 0.4)'}, {offset: 1, color: 'rgba(79, 70, 229, 0.0)'}]) }
-            }]
-        };
-        myChart.setOption(option);
-        window.addEventListener('resize', function() { myChart.resize(); });
-    </script>
-</body>
-</html>`;
-
-    const blob = new Blob([htmlContent], { type: 'text/html' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `Chronos_Report_${ticker}_${new Date().getTime()}.html`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    const opt = {
+      margin:       0.5,
+      filename:     `Chronos_Backtest_${results?.ticker || 'Report'}.pdf`,
+      image:        { type: 'jpeg', quality: 0.98 },
+      html2canvas:  { scale: 2, useCORS: true },
+      jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
+    };
+    
+    // Use html2pdf to generate a PDF of the live dashboard
+    html2pdf().set(opt).from(element).save();
   };
   if (!results) return null;
   const { summary, risk_metrics: risk, trade_statistics: trades } = results;

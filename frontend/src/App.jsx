@@ -225,7 +225,7 @@ function App() {
                 </div>
               )}{" "}
               {results && (
-                <div className="space-y-6">
+                <div className="space-y-6" id="pdf-report-container">
                   {" "}
                   <ResultsTable results={results} />{" "}
                   {/* Sub-navigation for Charts */}{" "}
