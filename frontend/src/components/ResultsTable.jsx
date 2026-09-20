@@ -39,12 +39,12 @@ function StatCard({
     </div>
   );
 }
-export default function ResultsTable({ results }) {
+export default function ResultsTable({ results, indicators }) {
   const { region } = useRegion();
 
   const handleDownloadReport = async () => {
     if (!results) return;
-    const { summary, risk_metrics: risk, trade_statistics: trades, ticker, start_date, end_date, strategy } = results;
+    const { summary, risk_metrics: risk, trade_statistics: trades, ticker, start_date, end_date, strategy, trades: tradesList } = results;
 
     const convertSvgToPng = (svgNode) => {
       return new Promise((resolve, reject) => {
@@ -73,7 +73,7 @@ export default function ResultsTable({ results }) {
           };
           img.onerror = (e) => {
             console.error("SVG to PNG error", e);
-            resolve(''); // Fallback to empty
+            resolve('');
           };
           
           img.src = "data:image/svg+xml;base64," + btoa(unescape(encodeURIComponent(cleanSvg)));
@@ -100,6 +100,65 @@ export default function ResultsTable({ results }) {
       if (pngData) {
         drawdownChart = `<div style="text-align: center; margin-top: 15px;"><img src="${pngData}" style="max-width: 100%; border: 1px solid #e2e8f0; border-radius: 8px;" /></div>`;
       }
+    }
+
+    // Generate Technical EChart
+    let technicalChartHTML = '';
+    if (indicators && indicators.data && typeof echarts !== 'undefined') {
+        const tempDiv = document.createElement('div');
+        tempDiv.style.width = '800px';
+        tempDiv.style.height = '400px';
+        tempDiv.style.position = 'absolute';
+        tempDiv.style.left = '-9999px';
+        document.body.appendChild(tempDiv);
+        
+        const chart = echarts.init(tempDiv);
+        chart.setOption({
+            animation: false,
+            grid: { left: '5%', right: '5%', top: '10%', bottom: '15%' },
+            xAxis: { type: 'category', data: indicators.data.map(d => d.date) },
+            yAxis: { type: 'value', min: 'dataMin' },
+            series: [
+                { name: 'Price', type: 'line', data: indicators.data.map(d => d.close), color: '#3b82f6', showSymbol: false, lineStyle: { width: 2 } },
+                { name: 'SMA Fast', type: 'line', data: indicators.data.map(d => d.sma_fast || null), color: '#f59e0b', showSymbol: false, lineStyle: { width: 1.5, type: 'dashed' } },
+                { name: 'SMA Slow', type: 'line', data: indicators.data.map(d => d.sma_slow || null), color: '#ef4444', showSymbol: false, lineStyle: { width: 1.5, type: 'dashed' } }
+            ]
+        });
+        
+        const dataURL = chart.getDataURL({ type: 'png', pixelRatio: 2 });
+        technicalChartHTML = `<div style="text-align: center; margin-top: 15px;"><img src="${dataURL}" style="max-width: 100%; max-height: 250px; object-fit: contain; border: 1px solid #e2e8f0; border-radius: 8px;" /></div>`;
+        
+        chart.dispose();
+        document.body.removeChild(tempDiv);
+    }
+
+    // Generate Trades HTML Table
+    let tradesHTML = '';
+    if (tradesList && tradesList.length > 0) {
+        const topTrades = [...tradesList].sort((a, b) => b.profit - a.profit).slice(0, 5);
+        tradesHTML = `
+        <table style="width: 100%; border-collapse: collapse; margin-top: 15px; margin-bottom: 30px; font-size: 12px;">
+            <thead>
+                <tr>
+                    <th style="border: 1px solid #cbd5e1; padding: 10px; background-color: #f8fafc; text-align: left; font-weight: bold;">Date</th>
+                    <th style="border: 1px solid #cbd5e1; padding: 10px; background-color: #f8fafc; text-align: left; font-weight: bold;">Type</th>
+                    <th style="border: 1px solid #cbd5e1; padding: 10px; background-color: #f8fafc; text-align: left; font-weight: bold;">Price</th>
+                    <th style="border: 1px solid #cbd5e1; padding: 10px; background-color: #f8fafc; text-align: left; font-weight: bold;">Shares</th>
+                    <th style="border: 1px solid #cbd5e1; padding: 10px; background-color: #f8fafc; text-align: left; font-weight: bold;">Profit</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${topTrades.map(t => `
+                <tr>
+                    <td style="border: 1px solid #cbd5e1; padding: 10px;"><strong>${t.date}</strong></td>
+                    <td style="border: 1px solid #cbd5e1; padding: 10px; color: ${t.type === 'buy' ? '#16a34a' : '#dc2626'}; text-transform: uppercase;"><strong>${t.type}</strong></td>
+                    <td style="border: 1px solid #cbd5e1; padding: 10px;">${region.currency}${fmt(t.price)}</td>
+                    <td style="border: 1px solid #cbd5e1; padding: 10px;">${fmt(t.shares)}</td>
+                    <td style="border: 1px solid #cbd5e1; padding: 10px; color: ${t.profit > 0 ? '#16a34a' : (t.profit < 0 ? '#dc2626' : '#64748b')};"><strong>${t.profit !== null ? region.currency + fmt(t.profit) : '—'}</strong></td>
+                </tr>
+                `).join('')}
+            </tbody>
+        </table>`;
     }
 
     const htmlContent = `
@@ -189,14 +248,32 @@ export default function ResultsTable({ results }) {
         </p>
         ${drawdownChart}
 
+        <div class="html2pdf__page-break"></div>
+
+        <!-- PAGE 3: Technical & Trade Analysis -->
+        <h2 style="color: #334155; margin-top: 20px;">3. Advanced Technical & Trade Analysis</h2>
+        
+        <h3 style="color: #475569; margin-top: 25px;">Technical Price Action (Advanced Indicator Diagram)</h3>
+        <p>
+          The <strong>Technical Analysis</strong> diagram below tracks the asset's closing price alongside its algorithmic moving averages. 
+          When the fast trend line (orange dashed) crosses above the slow trend line (red dashed), the system identifies bullish momentum. 
+          Conversely, downward crossovers generate bearish structural signals.
+        </p>
+        ${technicalChartHTML}
+
+        <h3 style="color: #475569; margin-top: 40px;">Execution Log (Top 5 Trades)</h3>
+        <p>
+          The <strong>Trades Execution</strong> table provides a transparent log of the absolute best-performing historical entry and exit events dictated by the strategy. 
+          A total of <strong>${trades.total_trades}</strong> transactions were logged, achieving a cumulative win rate of <strong>${fmt(trades.win_rate_percent, "%")}</strong>.
+        </p>
+        ${tradesHTML}
+
         <div style="margin-top: 50px; text-align: center; font-size: 11px; color: #94a3b8; border-top: 1px solid #e2e8f0; padding-top: 20px;">
           <strong>Confidential & Proprietary</strong> • Generated by Chronos AI Quantitative Engine • ${new Date().toLocaleString()}
         </div>
       </div>
     `;
 
-    // Now we can just pass the string to html2pdf, it handles creating a hidden worker itself!
-    // This entirely avoids the -9999px bug that crashes html2canvas!
     const opt = {
       margin:       [0.5, 0, 0.5, 0],
       filename:     `Chronos_Detailed_Report_${ticker}.pdf`,

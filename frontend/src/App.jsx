@@ -227,7 +227,7 @@ function App() {
               {results && (
                 <div className="space-y-6" id="pdf-report-container">
                   {" "}
-                  <ResultsTable results={results} />{" "}
+                  <ResultsTable results={results} indicators={indicators} />{" "}
                   {/* Sub-navigation for Charts */}{" "}
                   <div className="border-b border-slate-200 dark:border-zinc-800 flex gap-6">
                     {" "}
