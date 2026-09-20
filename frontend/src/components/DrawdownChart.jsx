@@ -27,7 +27,7 @@ export default function DrawdownChart({ dates, portfolioValues }) {
   return (
     <div>
       <h3 className="text-sm font-bold text-slate-900 dark:text-zinc-50 uppercase tracking-wider mb-6">
-        Underwater Plot (Drawdown)
+        Drawdown Plot
       </h3>
       <ResponsiveContainer width="100%" height={240}>
         <AreaChart data={data} margin={{ top: 10, right: 0, left: -20, bottom: 0 }}>
