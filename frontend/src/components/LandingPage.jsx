@@ -73,13 +73,7 @@ export default function LandingPage({ onComplete }) {
         </div>
       ))}
 
-      {/* Explosion / Shockwave when they hit center */}
-      {phase === 'explosion' && (
-        <>
-          <div className="absolute w-48 h-48 bg-indigo-500 rounded-full blur-[80px] animate-ping opacity-80" style={{ animationDuration: '0.8s' }}></div>
-          <div className="absolute w-32 h-32 bg-white rounded-full blur-[40px] animate-ping opacity-100" style={{ animationDuration: '0.5s' }}></div>
-        </>
-      )}
+      {/* No explosion overlay per user request */}
 
       {/* Text Popup */}
       <div className={`relative z-10 transition-all duration-700 ease-out transform ${phase === 'text' ? 'scale-100 opacity-100' : 'scale-50 opacity-0'}`}>
