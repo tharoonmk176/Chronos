@@ -42,20 +42,64 @@ function StatCard({
 export default function ResultsTable({ results }) {
   const { region } = useRegion();
 
-  const handleDownloadReport = () => {
+  const handleDownloadReport = async () => {
     if (!results) return;
     const { summary, risk_metrics: risk, trade_statistics: trades, ticker, start_date, end_date, strategy } = results;
 
-    // Grab the Recharts SVGs from the DOM
-    const chartWrappers = document.querySelectorAll('.recharts-wrapper');
+    const convertSvgToPng = (svgNode) => {
+      return new Promise((resolve, reject) => {
+        try {
+          const clonedSvg = svgNode.cloneNode(true);
+          const svgData = new XMLSerializer().serializeToString(clonedSvg);
+          
+          let cleanSvg = svgData;
+          if (!cleanSvg.includes('xmlns="http://www.w3.org/2000/svg"')) {
+            cleanSvg = cleanSvg.replace('<svg ', '<svg xmlns="http://www.w3.org/2000/svg" ');
+          }
+
+          const canvas = document.createElement("canvas");
+          const svgSize = svgNode.getBoundingClientRect();
+          canvas.width = svgSize.width || 800;
+          canvas.height = svgSize.height || 300;
+          
+          const ctx = canvas.getContext("2d");
+          const img = new Image();
+          
+          img.onload = () => {
+            ctx.fillStyle = 'white';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            resolve(canvas.toDataURL("image/png"));
+          };
+          img.onerror = (e) => {
+            console.error("SVG to PNG error", e);
+            resolve(''); // Fallback to empty
+          };
+          
+          img.src = "data:image/svg+xml;base64," + btoa(unescape(encodeURIComponent(cleanSvg)));
+        } catch (err) {
+          console.error(err);
+          resolve('');
+        }
+      });
+    };
+
+    const chartWrappers = document.querySelectorAll('.recharts-wrapper svg');
     let equityChart = '';
     let drawdownChart = '';
     
     if (chartWrappers.length > 0) {
-      equityChart = `<div style="display: flex; justify-content: center; transform: scale(0.85); transform-origin: top center;">${chartWrappers[0].outerHTML}</div>`;
+      const pngData = await convertSvgToPng(chartWrappers[0]);
+      if (pngData) {
+        equityChart = `<div style="text-align: center; margin-top: 15px;"><img src="${pngData}" style="max-width: 100%; border: 1px solid #e2e8f0; border-radius: 8px;" /></div>`;
+      }
     }
+    
     if (chartWrappers.length > 1) {
-      drawdownChart = `<div style="display: flex; justify-content: center; transform: scale(0.85); transform-origin: top center;">${chartWrappers[1].outerHTML}</div>`;
+      const pngData = await convertSvgToPng(chartWrappers[1]);
+      if (pngData) {
+        drawdownChart = `<div style="text-align: center; margin-top: 15px;"><img src="${pngData}" style="max-width: 100%; border: 1px solid #e2e8f0; border-radius: 8px;" /></div>`;
+      }
     }
 
     const htmlContent = `
@@ -151,16 +195,8 @@ export default function ResultsTable({ results }) {
       </div>
     `;
 
-    const container = document.createElement('div');
-    container.innerHTML = htmlContent;
-    
-    // We must append to document so html2canvas can render the SVG properly
-    container.style.position = 'absolute';
-    container.style.left = '-9999px';
-    container.style.top = '0';
-    container.style.width = '800px';
-    document.body.appendChild(container);
-
+    // Now we can just pass the string to html2pdf, it handles creating a hidden worker itself!
+    // This entirely avoids the -9999px bug that crashes html2canvas!
     const opt = {
       margin:       [0.5, 0, 0.5, 0],
       filename:     `Chronos_Detailed_Report_${ticker}.pdf`,
@@ -169,12 +205,7 @@ export default function ResultsTable({ results }) {
       jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
     };
 
-    html2pdf().set(opt).from(container).save().then(() => {
-      document.body.removeChild(container);
-    }).catch(err => {
-      console.error(err);
-      document.body.removeChild(container);
-    });
+    html2pdf().set(opt).from(htmlContent).save();
   };
   if (!results) return null;
   const { summary, risk_metrics: risk, trade_statistics: trades } = results;
