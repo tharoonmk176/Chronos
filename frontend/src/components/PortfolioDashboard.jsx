@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import HoldingDetailModal from './HoldingDetailModal';
 import { useRegion } from '../RegionContext';
 import { Upload, FileText, CheckCircle, AlertCircle, TrendingUp, TrendingDown, RefreshCw, Plus, X, ArrowRight } from 'lucide-react';
 
@@ -17,6 +18,7 @@ export default function PortfolioDashboard() {
   const [uploading, setUploading] = useState(false);
   const [reviewItems, setReviewItems] = useState(null);
   const [tipFilter, setTipFilter] = useState('ALL');
+  const [selectedHolding, setSelectedHolding] = useState(null);
 
   useEffect(() => {
     fetchPortfolios();
@@ -296,7 +298,7 @@ export default function PortfolioDashboard() {
                 </tr>
               )}
               {filteredHoldings.map((h, idx) => (
-                <tr key={idx} className="hover:bg-slate-50 dark:hover:bg-zinc-800/50 cursor-pointer group">
+                <tr key={idx} onClick={() => setSelectedHolding(h)} className="hover:bg-slate-50 dark:hover:bg-zinc-800/50 cursor-pointer group">
                   <td className="py-3 px-4 font-bold text-slate-900 dark:text-zinc-50">{h.ticker}</td>
                   <td className="py-3 px-4 text-right font-medium text-slate-700 dark:text-zinc-300">{h.quantity}</td>
                   <td className="py-3 px-4 text-right font-medium text-slate-700 dark:text-zinc-300">{formatCurrency(h.buy_price)}</td>
@@ -338,6 +340,7 @@ export default function PortfolioDashboard() {
          </div>
       </div>
       
+      {selectedHolding && <HoldingDetailModal holding={selectedHolding} onClose={() => setSelectedHolding(null)} />}
     </div>
   );
 }

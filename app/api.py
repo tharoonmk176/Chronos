@@ -641,3 +641,32 @@ async def list_portfolios(db: Session = Depends(get_db)):
         return {"portfolios": []}
     portfolios = db.query(Portfolio).filter(Portfolio.user_id == user.id).order_by(Portfolio.created_at.desc()).all()
     return {"portfolios": [{"id": p.id, "name": p.name, "created_at": p.created_at} for p in portfolios]}
+
+@router.get("/ticker/{ticker}/chart")
+def get_ticker_chart(ticker: str, days: int = 180):
+    try:
+        import yfinance as yf
+        import datetime
+        end_date = datetime.datetime.now()
+        start_date = end_date - datetime.timedelta(days=days)
+        df = yf.download(ticker, start=start_date.strftime('%Y-%m-%d'), end=end_date.strftime('%Y-%m-%d'), progress=False)
+        
+        if df.empty:
+            return {"error": "No data found for this ticker"}
+            
+        # Format for lightweight-charts or echarts
+        chart_data = []
+        for date, row in df.iterrows():
+            chart_data.append({
+                "time": date.strftime('%Y-%m-%d'),
+                "open": float(row['Open'].iloc[0]) if isinstance(row['Open'], pd.Series) else float(row['Open']),
+                "high": float(row['High'].iloc[0]) if isinstance(row['High'], pd.Series) else float(row['High']),
+                "low": float(row['Low'].iloc[0]) if isinstance(row['Low'], pd.Series) else float(row['Low']),
+                "close": float(row['Close'].iloc[0]) if isinstance(row['Close'], pd.Series) else float(row['Close']),
+                "volume": float(row['Volume'].iloc[0]) if isinstance(row['Volume'], pd.Series) else float(row['Volume'])
+            })
+            
+        return {"ticker": ticker, "data": chart_data}
+    except Exception as e:
+        return {"error": str(e)}
+
