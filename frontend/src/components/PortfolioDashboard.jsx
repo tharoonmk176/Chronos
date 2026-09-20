@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import HoldingDetailModal from './HoldingDetailModal';
 import { useRegion } from '../RegionContext';
-import { Upload, FileText, CheckCircle, AlertCircle, TrendingUp, TrendingDown, RefreshCw, Plus, X, ArrowRight } from 'lucide-react';
+import { Upload, FileText, CheckCircle, AlertCircle, TrendingUp, TrendingDown, RefreshCw, Plus, X, ArrowRight, Sparkles, ChevronRight } from 'lucide-react';
 
 export default function PortfolioDashboard() {
   const { region } = useRegion();
@@ -18,10 +18,15 @@ export default function PortfolioDashboard() {
   const [uploading, setUploading] = useState(false);
   const [reviewItems, setReviewItems] = useState(null);
   const [tipFilter, setTipFilter] = useState('ALL');
+  const [strategies, setStrategies] = useState([]);
   const [selectedHolding, setSelectedHolding] = useState(null);
 
   useEffect(() => {
     fetchPortfolios();
+    fetch('http://localhost:8000/api/v1/strategies')
+      .then(r => r.json())
+      .then(d => setStrategies(d.strategies || []))
+      .catch(console.error);
   }, []);
 
   const fetchPortfolios = async () => {
@@ -107,6 +112,23 @@ export default function PortfolioDashboard() {
     const num = new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(val || 0);
     return `${region.currency}${num}`;
   };
+
+    const topSuggestions = React.useMemo(() => {
+    if (!strategies.length) return [];
+    const byAsset = {};
+    strategies.forEach(s => {
+      const ac = s['Primary asset class'];
+      if (!ac) return;
+      if (!byAsset[ac]) {
+        byAsset[ac] = s;
+      } else {
+        const ret1 = parseFloat(byAsset[ac]['3M return']) || -999;
+        const ret2 = parseFloat(s['3M return']) || -999;
+        if (ret2 > ret1) byAsset[ac] = s;
+      }
+    });
+    return Object.values(byAsset).slice(0, 4); // Take top 4 unique asset classes
+  }, [strategies]);
 
   const filteredHoldings = tipFilter === 'ALL' 
     ? holdings 
@@ -257,6 +279,31 @@ export default function PortfolioDashboard() {
            <div className="text-xs font-medium text-slate-500 dark:text-zinc-500 mt-1">Source: Yahoo Finance API</div>
         </div>
       </div>
+
+      {topSuggestions.length > 0 && (
+        <div className="mb-6 bg-indigo-50 dark:bg-indigo-900/10 border border-indigo-100 dark:border-indigo-500/20 rounded-xl p-5 shadow-sm">
+          <div className="flex items-center space-x-2 mb-4">
+            <Sparkles className="text-indigo-600 dark:text-indigo-400" size={20} />
+            <h3 className="text-base font-bold text-slate-900 dark:text-zinc-50">AI Strategy Suggestions</h3>
+            <span className="text-xs font-semibold px-2 py-0.5 bg-indigo-100 dark:bg-indigo-500/20 text-indigo-700 dark:text-indigo-400 rounded">Top #1 per Asset Class</span>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {topSuggestions.map((s, i) => (
+              <div key={i} className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 p-4 rounded-lg flex flex-col justify-between hover:shadow-md transition-shadow cursor-pointer group">
+                <div>
+                  <div className="text-[10px] font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-wider mb-1">{s['Primary asset class']}</div>
+                  <div className="text-sm font-bold text-slate-900 dark:text-zinc-50 leading-tight mb-2 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">{s.Strategy}</div>
+                  <div className="text-xs text-slate-500 dark:text-zinc-400 line-clamp-2">{s['Best-fit situation']}</div>
+                </div>
+                <div className="mt-4 flex items-center justify-between">
+                  <div className="text-xs font-bold text-emerald-600 dark:text-emerald-400">{s['3M return'] ? `+${parseFloat(s['3M return']).toFixed(2)}% (3M)` : ''}</div>
+                  <ChevronRight size={16} className="text-slate-300 dark:text-zinc-600 group-hover:text-indigo-500 transition-colors" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl overflow-hidden shadow-sm">
         <div className="p-4 border-b border-slate-200 dark:border-zinc-800 flex justify-between items-center bg-slate-50/50 dark:bg-zinc-900/50">
