@@ -732,45 +732,79 @@ def analyze_portfolio(portfolio_id: str, db: Session = Depends(get_db)):
         if not db_items:
             return {"error": "No items in portfolio"}
         
-        items = [{"ticker": i.ticker, "quantity": i.quantity, "buy_price": i.buy_price} for i in db_items]
+        items = [{"ticker": i.ticker, "quantity": i.quantity, "buy_price": i.buy_price, "current_price": i.fallback_current_price or i.buy_price} for i in db_items]
             
         import google.generativeai as genai
         import json
+        
         prompt = f'''Analyze this portfolio: {items}. 
-        Return ONLY a raw JSON object (no markdown, no backticks) with this exact structure:
-        {{
-            "risk_score": 75,
-            "diversification": "Medium",
-            "summary": "2-3 sentences of expert quantitative analysis.",
-            "sectors": [
-                {{"name": "Technology", "value": 50}},
-                {{"name": "Financials", "value": 30}},
-                {{"name": "Energy", "value": 20}}
-            ]
-        }}
-        Guess the sectors based on the tickers.'''
+        Return ONLY a raw JSON array of objects (no markdown, no backticks) with this exact structure for each ticker in the portfolio:
+        [
+            {{
+                "ticker": "AAPL",
+                "company_name": "Apple Inc.",
+                "sector": "Technology",
+                "market_cap_category": "Large Cap"
+            }}
+        ]
+        Guess the company name, sector, and market cap category ("Small Cap", "Mid Cap", "Large Cap", "Others") based on the tickers. Ensure EVERY ticker from the input list is in the array.'''
         
-        # We can just reuse the global model
-        resp = model.generate_content(prompt)
-        text = resp.text.strip()
-        if text.startswith("```json"):
-            text = text[7:-3]
-        if text.startswith("```"):
-            text = text[3:-3]
+        try:
+            resp = model.generate_content(prompt)
+            text = resp.text.strip()
+            if text.startswith("```json"):
+                text = text[7:-3]
+            if text.startswith("```"):
+                text = text[3:-3]
+            ai_data = json.loads(text.strip())
+            ai_map = {d["ticker"].upper(): d for d in ai_data}
+        except Exception as e:
+            print("Gemini parsing error:", e)
+            ai_map = {}
         
-        analysis = json.loads(text.strip())
-        return analysis
+        market_data = {}
+        sector_data = {}
+        top_holdings = []
+        
+        for item in items:
+            t = item["ticker"].upper()
+            meta = ai_map.get(t, {"company_name": t, "sector": "Others", "market_cap_category": "Others"})
+            
+            # Fallback if Gemini missed a field
+            comp_name = meta.get("company_name", t)
+            sector = meta.get("sector", "Others")
+            m_cap = meta.get("market_cap_category", "Others")
+            
+            market_val = float(item["quantity"] * item["current_price"])
+            total_gl = float((item["current_price"] - item["buy_price"]) * item["quantity"])
+            
+            detail = {
+                "ticker": t,
+                "company_name": comp_name,
+                "market_value": market_val,
+                "total_gl": total_gl
+            }
+            
+            top_holdings.append(detail)
+            
+            if m_cap not in market_data:
+                market_data[m_cap] = {"name": m_cap, "value": 0, "details": []}
+            market_data[m_cap]["value"] += market_val
+            market_data[m_cap]["details"].append(detail)
+            
+            if sector not in sector_data:
+                sector_data[sector] = {"name": sector, "value": 0, "details": []}
+            sector_data[sector]["value"] += market_val
+            sector_data[sector]["details"].append(detail)
+            
+        top_holdings.sort(key=lambda x: x["market_value"], reverse=True)
+        
+        # We format the pie chart items to {name, value} for the top level
+        return {
+            "market": list(market_data.values()),
+            "sector": list(sector_data.values()),
+            "holdings": top_holdings
+        }
     except Exception as e:
         print(f'ERROR IN ANALYZE: {e}')
-        # Fallback static analysis if AI fails
-        return {
-            "risk_score": 68,
-            "diversification": "Moderate",
-            "summary": "This portfolio shows a balanced exposure across major equities. Risk is moderate, but consider increasing fixed-income assets to hedge against downside volatility.",
-            "sectors": [
-                {"name": "Technology", "value": 45},
-                {"name": "Financials", "value": 25},
-                {"name": "Consumer Goods", "value": 20},
-                {"name": "Healthcare", "value": 10}
-            ]
-        }
+        return {"error": "Internal server error"}
