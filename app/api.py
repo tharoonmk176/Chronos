@@ -265,6 +265,8 @@ def _serialize(record: BacktestResult, db: Session) -> dict:
     return {
         "backtest_id": record.id,
         "ticker": record.ticker,
+        "start_date": record.start_date,
+        "end_date": record.end_date,
         "strategy": record.strategy,
         "status": record.status,
         "error_message": record.error_message,
