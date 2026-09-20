@@ -5,11 +5,11 @@ export default function LandingPage({ onComplete }) {
 
   useEffect(() => {
     // Stage 1: Fast, snappy convergence (1.2s)
-    const t1 = setTimeout(() => setPhase('explosion'), 1300);
+    const t1 = setTimeout(() => setPhase('explosion'), 2000);
     // Stage 2: CHRONOS text pops up immediately after (1.4s)
-    const t2 = setTimeout(() => setPhase('text'), 1400);
+    const t2 = setTimeout(() => setPhase('text'), 2100);
     // Stage 3: Auto-complete and enter site (4s total)
-    const t3 = setTimeout(() => onComplete(), 4000);
+    const t3 = setTimeout(() => onComplete(), 4800);
 
     return () => {
       clearTimeout(t1);
@@ -33,8 +33,8 @@ export default function LandingPage({ onComplete }) {
 
   // 16 rich assets converging from all angles
   const assets = [
-    { id: 1, icon: <img src="https://upload.wikimedia.org/wikipedia/commons/4/46/Bitcoin.svg" className="w-16 h-16 drop-shadow-[0_0_15px_rgba(247,147,26,0.5)]" alt="BTC" />, x: '-45vw', y: '-40vh', delay: '0s', rot: 45 },
-    { id: 2, icon: <img src="https://cryptologos.cc/logos/paxos-gold-paxg-logo.png" className="w-16 h-16 drop-shadow-[0_0_15px_rgba(255,215,0,0.5)]" alt="Gold" />, x: '45vw', y: '-35vh', delay: '0.1s', rot: -30 },
+    { id: 1, icon: <img src="https://upload.wikimedia.org/wikipedia/commons/4/46/Bitcoin.svg" className="w-10 h-10 drop-shadow-[0_0_15px_rgba(247,147,26,0.5)]" alt="BTC" />, x: '-45vw', y: '-40vh', delay: '0s', rot: 45 },
+    { id: 2, icon: <img src="https://cryptologos.cc/logos/paxos-gold-paxg-logo.png" className="w-10 h-10 drop-shadow-[0_0_15px_rgba(255,215,0,0.5)]" alt="Gold" />, x: '45vw', y: '-35vh', delay: '0.1s', rot: -30 },
     { id: 3, icon: <TrendChartGreen />, x: '-35vw', y: '45vh', delay: '0.2s', rot: 15 },
     { id: 4, icon: <TrendChartBlue />, x: '35vw', y: '40vh', delay: '0.05s', rot: -15 },
     { id: 5, icon: <img src="https://logo.clearbit.com/nvidia.com" className="w-16 h-16 rounded-xl shadow-[0_0_20px_rgba(118,185,0,0.4)]" alt="NVDA" />, x: '-50vw', y: '0', delay: '0.15s', rot: 60 },
@@ -42,7 +42,7 @@ export default function LandingPage({ onComplete }) {
     { id: 7, icon: <img src="https://logo.clearbit.com/tesla.com" className="w-16 h-16 rounded-xl shadow-[0_0_20px_rgba(227,25,55,0.4)] bg-white p-1" alt="Tesla" />, x: '0', y: '-50vh', delay: '0.3s', rot: 90 },
     { id: 8, icon: <img src="https://logo.clearbit.com/meta.com" className="w-16 h-16 rounded-xl shadow-[0_0_20px_rgba(6,104,225,0.4)] bg-white p-1" alt="Meta" />, x: '0', y: '50vh', delay: '0.1s', rot: -90 },
     { id: 9, icon: <img src="https://logo.clearbit.com/google.com" className="w-16 h-16 rounded-xl shadow-[0_0_20px_rgba(255,255,255,0.3)] bg-white p-2" alt="Google" />, x: '-40vw', y: '25vh', delay: '0.35s', rot: 120 },
-    { id: 10, icon: <img src="https://upload.wikimedia.org/wikipedia/commons/0/05/Ethereum_logo_2014.svg" className="w-12 h-16 drop-shadow-[0_0_15px_rgba(98,126,234,0.5)]" alt="ETH" />, x: '40vw', y: '-15vh', delay: '0.15s', rot: -120 },
+    { id: 10, icon: <img src="https://upload.wikimedia.org/wikipedia/commons/0/05/Ethereum_logo_2014.svg" className="w-8 h-12 drop-shadow-[0_0_15px_rgba(98,126,234,0.5)]" alt="ETH" />, x: '40vw', y: '-15vh', delay: '0.15s', rot: -120 },
     { id: 11, icon: <img src="https://logo.clearbit.com/apple.com" className="w-16 h-16 rounded-xl shadow-[0_0_20px_rgba(255,255,255,0.3)] bg-white p-1" alt="Apple" />, x: '25vw', y: '-45vh', delay: '0.05s', rot: 30 },
     { id: 12, icon: <img src="https://logo.clearbit.com/microsoft.com" className="w-16 h-16 rounded-xl shadow-[0_0_20px_rgba(255,255,255,0.2)]" alt="Microsoft" />, x: '-25vw', y: '50vh', delay: '0.2s', rot: -60 },
     { id: 13, icon: <img src="https://logo.clearbit.com/amazon.com" className="w-16 h-16 rounded-xl shadow-[0_0_20px_rgba(255,153,0,0.4)] bg-white p-2" alt="Amazon" />, x: '-20vw', y: '-30vh', delay: '0.25s', rot: 75 },
@@ -65,7 +65,7 @@ export default function LandingPage({ onComplete }) {
             '--rot': asset.rot,
             transform: `translate(${asset.x}, ${asset.y})`,
             willChange: 'transform, opacity, filter',
-            animation: `suckInSmooth 1.2s cubic-bezier(0.7, 0, 0.3, 1) forwards`,
+            animation: `suckInSmooth 1.8s cubic-bezier(0.7, 0, 0.3, 1) forwards`,
             animationDelay: asset.delay
           }}
         >
