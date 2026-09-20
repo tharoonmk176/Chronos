@@ -2,6 +2,8 @@ import { useRegion } from "../RegionContext";
 import React, { useContext, useState, useRef, useEffect } from 'react';
 import { useSelector } from "react-redux";
 import { Bot, User, Send, X, MessageSquare, Sparkles } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 export default function Chatbot() {
   const backtestResults = useSelector(s => s.backtest?.results);
@@ -121,6 +123,7 @@ export default function Chatbot() {
                       table: ({node, ...props}) => <div className="overflow-x-auto my-3 rounded-lg border border-slate-300 dark:border-zinc-600"><table className="w-full text-left border-collapse text-xs" {...props} /></div>,
                       th: ({node, ...props}) => <th className="border-b border-slate-300 dark:border-zinc-600 bg-slate-100 dark:bg-zinc-700 px-3 py-2 font-bold uppercase tracking-wider" {...props} />,
                       td: ({node, ...props}) => <td className="border-b border-slate-200 dark:border-zinc-700/50 px-3 py-2" {...props} />,
+                      tr: ({node, ...props}) => <tr className="hover:bg-slate-50 dark:hover:bg-zinc-800/50 transition-colors" {...props} />,
                       strong: ({node, ...props}) => <strong className="font-extrabold text-indigo-700 dark:text-indigo-400" {...props} />,
                       h3: ({node, ...props}) => <h3 className="text-sm font-bold uppercase tracking-wider mt-4 mb-2 text-indigo-800 dark:text-indigo-300 border-b border-indigo-100 dark:border-indigo-500/20 pb-1" {...props} />,
                       h4: ({node, ...props}) => <h4 className="font-bold mt-3 mb-1" {...props} />,
