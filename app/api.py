@@ -230,7 +230,7 @@ def compare_strategies(request: CompareStrategiesRequest):
                 "win_rate_percent": r["trade_statistics"]["win_rate_percent"],
             })
         except Exception as e:
-        print(f'ERROR IN ANALYZE: {e}')
+            print(f'ERROR IN ANALYZE: {e}')
             results.append({"strategy": strategy, "error": str(e)})
     return {"ticker": request.ticker, "comparison": results}
 
