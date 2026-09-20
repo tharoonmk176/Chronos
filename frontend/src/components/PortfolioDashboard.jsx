@@ -16,6 +16,7 @@ export default function PortfolioDashboard() {
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [reviewItems, setReviewItems] = useState(null);
+  const [tipFilter, setTipFilter] = useState('ALL');
 
   useEffect(() => {
     fetchPortfolios();
@@ -104,6 +105,10 @@ export default function PortfolioDashboard() {
     const num = new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(val || 0);
     return `${region.currency}${num}`;
   };
+
+  const filteredHoldings = tipFilter === 'ALL' 
+    ? holdings 
+    : holdings.filter(h => getTip(h).action === tipFilter);
 
   if (reviewItems) {
     return (
@@ -252,6 +257,22 @@ export default function PortfolioDashboard() {
       </div>
 
       <div className="bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-xl overflow-hidden shadow-sm">
+        <div className="p-4 border-b border-slate-200 dark:border-zinc-800 flex justify-between items-center bg-slate-50/50 dark:bg-zinc-900/50">
+          <h3 className="text-sm font-bold text-slate-900 dark:text-zinc-50 uppercase tracking-wider">Current Holdings</h3>
+          <div className="flex items-center space-x-2">
+            <span className="text-xs font-medium text-slate-500 dark:text-zinc-400 uppercase tracking-wider">AI Filter:</span>
+            <select 
+              value={tipFilter} 
+              onChange={(e) => setTipFilter(e.target.value)}
+              className="bg-white dark:bg-zinc-950 border border-slate-200 dark:border-zinc-700 rounded-md text-xs font-bold px-3 py-1.5 text-indigo-600 dark:text-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer shadow-sm"
+            >
+              <option value="ALL">ALL HOLDINGS</option>
+              <option value="HOLD">HOLD ONLY</option>
+              <option value="ACCUMULATE">ACCUMULATE ONLY</option>
+              <option value="REVIEW">REVIEW ONLY</option>
+            </select>
+          </div>
+        </div>
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse whitespace-nowrap text-sm">
             <thead className="bg-slate-50 dark:bg-zinc-950 text-slate-600 dark:text-zinc-400 border-b border-slate-200 dark:border-zinc-800">
@@ -267,7 +288,14 @@ export default function PortfolioDashboard() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-zinc-800">
-              {holdings.map((h, idx) => (
+                            {filteredHoldings.length === 0 && (
+                <tr>
+                  <td colSpan="8" className="py-8 text-center text-slate-500 dark:text-zinc-500 font-medium">
+                    No holdings match the selected AI tip filter.
+                  </td>
+                </tr>
+              )}
+              {filteredHoldings.map((h, idx) => (
                 <tr key={idx} className="hover:bg-slate-50 dark:hover:bg-zinc-800/50 cursor-pointer group">
                   <td className="py-3 px-4 font-bold text-slate-900 dark:text-zinc-50">{h.ticker}</td>
                   <td className="py-3 px-4 text-right font-medium text-slate-700 dark:text-zinc-300">{h.quantity}</td>
