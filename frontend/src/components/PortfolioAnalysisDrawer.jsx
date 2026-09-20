@@ -47,12 +47,20 @@ export default function PortfolioAnalysisDrawer({ portfolioId, onClose }) {
             return `<strong>${params.name}</strong><br/>Value: ${region.currency}${fmt(params.value)} (${params.percent}%)`;
         }
       },
-      legend: { bottom: '0%', left: 'center', textStyle: { color: '#64748b' } },
+      legend: { 
+          type: 'scroll',
+          orient: 'vertical',
+          right: 10,
+          top: 20,
+          bottom: 20,
+          textStyle: { color: '#64748b', fontSize: 12 }
+      },
       series: [
         {
           name: name,
           type: 'pie',
           radius: ['40%', '70%'],
+          center: ['40%', '50%'], // Shift pie to the left to make room for legend
           avoidLabelOverlap: true,
           itemStyle: {
             borderRadius: 8,
@@ -60,12 +68,9 @@ export default function PortfolioAnalysisDrawer({ portfolioId, onClose }) {
             borderWidth: 2
           },
           label: { 
-              show: true,
-              formatter: '{b}\\n{d}%',
-              color: '#475569',
-              fontWeight: 'bold'
+              show: false // Hide messy overlapping inline labels
           },
-          labelLine: { show: true },
+          labelLine: { show: false },
           data: chartData
         }
       ]
@@ -84,8 +89,9 @@ export default function PortfolioAnalysisDrawer({ portfolioId, onClose }) {
         flatItems = data.holdings || [];
     }
 
-    // Sort by market value desc
+    // Sort by market value desc and take only Top 6
     flatItems.sort((a, b) => b.market_value - a.market_value);
+    flatItems = flatItems.slice(0, 6);
 
     return (
       <div className="overflow-x-auto mt-6">
