@@ -21,27 +21,24 @@ export default function LandingPage({ onComplete }) {
 
   // Generate random starting positions outside the center
   const assets = [
-    { id: 1, icon: <Bitcoin size={48} className="text-[#F7931A]" />, x: '-40vw', y: '-40vh', delay: '0s', type: 'crypto' },
-    { id: 2, icon: <Coins size={48} className="text-[#FFD700]" />, x: '40vw', y: '-30vh', delay: '0.2s', type: 'gold' },
-    { id: 3, icon: <TrendingUp size={48} className="text-emerald-500" />, x: '-30vw', y: '40vh', delay: '0.4s', type: 'chart' },
-    { id: 4, icon: <LineChart size={48} className="text-blue-500" />, x: '35vw', y: '35vh', delay: '0.1s', type: 'trend' },
-    { id: 5, icon: <div className="text-2xl font-black text-green-600">NVDA</div>, x: '-50vw', y: '0', delay: '0.3s', type: 'stock' },
-    { id: 6, icon: <div className="text-2xl font-black text-blue-800">RELIANCE</div>, x: '50vw', y: '0', delay: '0.5s', type: 'stock' },
-    { id: 7, icon: <Car size={48} className="text-red-600" />, x: '0', y: '-50vh', delay: '0.6s', type: 'tesla' },
-    { id: 8, icon: <Globe size={48} className="text-blue-600" />, x: '0', y: '50vh', delay: '0.2s', type: 'meta' },
-    { id: 9, icon: <Target size={48} className="text-orange-500" />, x: '-40vw', y: '20vh', delay: '0.7s', type: 'google' },
-    { id: 10, icon: <Activity size={48} className="text-purple-500" />, x: '40vw', y: '-10vh', delay: '0.3s', type: 'pulse' },
-    { id: 11, icon: <div className="text-xl font-bold text-slate-400">AAPL</div>, x: '20vw', y: '-40vh', delay: '0.1s', type: 'stock' },
-    { id: 12, icon: <div className="text-xl font-bold text-slate-400">MSFT</div>, x: '-20vw', y: '50vh', delay: '0.4s', type: 'stock' }
+    { id: 1, icon: <img src="https://upload.wikimedia.org/wikipedia/commons/4/46/Bitcoin.svg" className="w-16 h-16 drop-shadow-2xl" alt="Bitcoin" />, x: '-40vw', y: '-40vh', delay: '0s' },
+    { id: 2, icon: <img src="https://cryptologos.cc/logos/paxos-gold-paxg-logo.png" className="w-16 h-16 drop-shadow-2xl" alt="Gold" />, x: '40vw', y: '-30vh', delay: '0.2s' },
+    { id: 3, icon: <img src="https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=200&h=200&fit=crop&q=80" className="w-24 h-24 rounded-lg shadow-2xl object-cover" alt="Chart" />, x: '-30vw', y: '40vh', delay: '0.4s' },
+    { id: 4, icon: <img src="https://upload.wikimedia.org/wikipedia/commons/c/c5/Candlestick_chart_example.svg" className="w-32 h-auto drop-shadow-2xl opacity-90" alt="Candlesticks" />, x: '35vw', y: '35vh', delay: '0.1s' },
+    { id: 5, icon: <img src="https://logo.clearbit.com/nvidia.com" className="w-16 h-16 rounded shadow-xl" alt="NVDA" />, x: '-50vw', y: '0', delay: '0.3s' },
+    { id: 6, icon: <img src="https://logo.clearbit.com/ril.com" className="w-16 h-16 rounded shadow-xl" alt="Reliance" />, x: '50vw', y: '0', delay: '0.5s' },
+    { id: 7, icon: <img src="https://logo.clearbit.com/tesla.com" className="w-16 h-16 rounded shadow-xl bg-white p-1" alt="Tesla" />, x: '0', y: '-50vh', delay: '0.6s' },
+    { id: 8, icon: <img src="https://logo.clearbit.com/meta.com" className="w-16 h-16 rounded shadow-xl" alt="Meta" />, x: '0', y: '50vh', delay: '0.2s' },
+    { id: 9, icon: <img src="https://logo.clearbit.com/google.com" className="w-16 h-16 rounded shadow-xl bg-white p-2" alt="Google" />, x: '-40vw', y: '20vh', delay: '0.7s' },
+    { id: 10, icon: <img src="https://images.unsplash.com/photo-1590283603385-17ffb3a7f29f?w=200&h=200&fit=crop&q=80" className="w-24 h-24 rounded-lg shadow-2xl object-cover" alt="Pulse" />, x: '40vw', y: '-10vh', delay: '0.3s' },
+    { id: 11, icon: <img src="https://logo.clearbit.com/apple.com" className="w-16 h-16 rounded shadow-xl bg-white p-1" alt="Apple" />, x: '20vw', y: '-40vh', delay: '0.1s' },
+    { id: 12, icon: <img src="https://logo.clearbit.com/microsoft.com" className="w-16 h-16 rounded shadow-xl" alt="Microsoft" />, x: '-20vw', y: '50vh', delay: '0.4s' }
   ];
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-950 overflow-hidden flex items-center justify-center cursor-pointer" onClick={onComplete}>
       
-      {/* Dark modern background grid */}
-      <div className="absolute inset-0 opacity-20" 
-           style={{ backgroundImage: 'linear-gradient(#334155 1px, transparent 1px), linear-gradient(90deg, #334155 1px, transparent 1px)', backgroundSize: '40px 40px' }}>
-      </div>
+
 
       {/* Floating Assets converging to center */}
       {phase === 'sucking' && assets.map((asset) => (
