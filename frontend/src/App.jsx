@@ -153,7 +153,7 @@ function App() {
         {activeMainTab === "intel" && <StrategyIntelligence />}
         {" "}
         {activeMainTab === "optimizer" && (
-          <div className="max-w-5xl mx-auto flex flex-col gap-6">
+          <div className="max-w-[1600px] w-full mx-auto grid grid-cols-1 xl:grid-cols-2 gap-6 items-start">
             <div className="bg-white dark:bg-zinc-900 rounded-xl border border-slate-200 dark:border-zinc-800 shadow-sm p-6">
               <h2 className="text-sm font-bold text-slate-900 dark:text-zinc-50 uppercase tracking-wider mb-4">
                 Grid Search Optimizer
