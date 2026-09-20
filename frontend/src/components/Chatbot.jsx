@@ -110,12 +110,26 @@ export default function Chatbot() {
                 </div>
 
                 {/* Bubble */}
-                <div className={`max-w-[75%] px-4 py-2.5 rounded-2xl text-[13px] leading-relaxed shadow-sm whitespace-pre-wrap ${
+                <div className={`max-w-[75%] px-4 py-2.5 rounded-2xl text-[13px] leading-relaxed shadow-sm ${
                   m.role === 'user' 
                     ? 'bg-indigo-600 text-white rounded-br-sm' 
                     : 'bg-white dark:bg-zinc-800/80 text-slate-700 dark:text-zinc-200 border border-slate-200/60 dark:border-zinc-700/50 rounded-bl-sm'
                 }`}>
-                  {m.content}
+                  <ReactMarkdown
+                    remarkPlugins={[remarkGfm]}
+                    components={{
+                      table: ({node, ...props}) => <div className="overflow-x-auto my-3 rounded-lg border border-slate-300 dark:border-zinc-600"><table className="w-full text-left border-collapse text-xs" {...props} /></div>,
+                      th: ({node, ...props}) => <th className="border-b border-slate-300 dark:border-zinc-600 bg-slate-100 dark:bg-zinc-700 px-3 py-2 font-bold uppercase tracking-wider" {...props} />,
+                      td: ({node, ...props}) => <td className="border-b border-slate-200 dark:border-zinc-700/50 px-3 py-2" {...props} />,
+                      strong: ({node, ...props}) => <strong className="font-extrabold text-indigo-700 dark:text-indigo-400" {...props} />,
+                      h3: ({node, ...props}) => <h3 className="text-sm font-bold uppercase tracking-wider mt-4 mb-2 text-indigo-800 dark:text-indigo-300 border-b border-indigo-100 dark:border-indigo-500/20 pb-1" {...props} />,
+                      h4: ({node, ...props}) => <h4 className="font-bold mt-3 mb-1" {...props} />,
+                      p: ({node, ...props}) => <p className="mb-2 last:mb-0" {...props} />,
+                      ul: ({node, ...props}) => <ul className="list-disc pl-5 mb-2 space-y-1" {...props} />,
+                    }}
+                  >
+                    {m.content}
+                  </ReactMarkdown>
                 </div>
               </div>
             ))}

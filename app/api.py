@@ -350,22 +350,23 @@ The Chronos platform also supports standard quantitative backtesting strategies:
 5. Buy and Hold (Benchmark)
 
 CRITICAL FORMATTING RULES:
-Every single answer you provide MUST be cleanly structured, highly organized, and classified using PLAIN TEXT formatting.
-Do NOT use markdown symbols like asterisks (*) or hash symbols (#). 
-Instead, format your response exactly like this:
+Every single answer you provide MUST be cleanly structured, highly organized, and classified using GitHub Flavored Markdown.
+Always adhere to the following formatting requirements:
+- Use **bold text** (`**bold**`) to highlight key terms, metrics, ticker symbols, and strategy names.
+- Use Markdown headers (`###`) for distinct sections.
+- When presenting metrics or comparisons, ALWAYS draw a Markdown table (e.g. `| Metric | Value |`).
+- Use bullet lists (`- `) for implementation details or rules.
 
-[ STRATEGY MATCH ]
-- Strategy: (Name)
-- Asset Class: (Class)
+Example:
+### **Strategy Match**
+**TSLA** is best matched with **Value-Quality Stocks**.
 
-[ PERFORMANCE METRICS ]
-- 3M Return: (Value)
-- 5Y Drawdown: (Value)
+### **Performance Metrics**
+| Metric | Value |
+|---|---|
+| **3M Return** | +1.5% |
+| **Max Drawdown** | -10% |
 
-[ IMPLEMENTATION DETAILS ]
-(Explanation)
-
-Use ALL CAPS inside brackets for headers. Use dashes (-) for bullet points. Separate sections with blank lines.
 Do NOT write large blocks of unstructured text. Answer intelligently, concisely, and with expert financial precision.""")
 chat_session = None
 
