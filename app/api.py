@@ -723,17 +723,14 @@ def get_ticker_chart(ticker: str, days: int = 180):
 
 
 @router.post("/portfolio/{portfolio_id}/analyze")
-def analyze_portfolio(portfolio_id: int):
+def analyze_portfolio(portfolio_id: str, db: Session = Depends(get_db)):
     try:
-        from app.database import get_db_connection
-        conn = get_db_connection()
-        cursor = conn.cursor(dictionary=True)
-        cursor.execute("SELECT ticker, quantity, buy_price FROM portfolio_items WHERE portfolio_id = %s", (portfolio_id,))
-        items = cursor.fetchall()
-        conn.close()
-        
-        if not items:
+        from app.models import PortfolioItem
+        db_items = db.query(PortfolioItem).filter(PortfolioItem.portfolio_id == portfolio_id).all()
+        if not db_items:
             return {"error": "No items in portfolio"}
+        
+        items = [{"ticker": i.ticker, "quantity": i.quantity, "buy_price": i.buy_price} for i in db_items]
             
         import google.generativeai as genai
         import json
