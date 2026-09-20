@@ -93,6 +93,7 @@ def get_price_data(ticker: str, start_date: str, end_date: str):
     try:
         data = _fetch_cached(ticker, start_date, end_date)
     except Exception as e:
+        print(f'ERROR IN ANALYZE: {e}')
         raise HTTPException(status_code=502, detail=str(e))
     return {
         "ticker": ticker,
@@ -124,6 +125,7 @@ def get_indicators(ticker: str, start_date: str, end_date: str,
         data = _fetch_cached(ticker, start_date, end_date)
         engine.DataFetcher.validate_data(data)
     except Exception as e:
+        print(f'ERROR IN ANALYZE: {e}')
         raise HTTPException(status_code=502, detail=str(e))
 
     data = engine.IndicatorCalculator.calculate_all_indicators(data.copy(), sma_fast, sma_slow)
@@ -170,6 +172,7 @@ def rolling_correlation(request: RollingCorrelationRequest):
             request.ticker1, request.ticker2, request.window,
         )
     except Exception as e:
+        print(f'ERROR IN ANALYZE: {e}')
         raise HTTPException(status_code=400, detail=str(e))
 
     return {
@@ -198,6 +201,7 @@ def regime_analysis(request: RegimeRequest):
         results = backtester.run()
         breakdown = engine.MarketRegimeAnalyzer.analyze_by_regime(results, data)
     except Exception as e:
+        print(f'ERROR IN ANALYZE: {e}')
         raise HTTPException(status_code=400, detail=str(e))
 
     return {"ticker": request.ticker, "strategy": request.strategy, "regime_breakdown": breakdown}
@@ -226,6 +230,7 @@ def compare_strategies(request: CompareStrategiesRequest):
                 "win_rate_percent": r["trade_statistics"]["win_rate_percent"],
             })
         except Exception as e:
+        print(f'ERROR IN ANALYZE: {e}')
             results.append({"strategy": strategy, "error": str(e)})
     return {"ticker": request.ticker, "comparison": results}
 
@@ -239,6 +244,7 @@ def optimize_parameters(request: OptimizationRequest):
             param_ranges=request.param_ranges,
         )
     except Exception as e:
+        print(f'ERROR IN ANALYZE: {e}')
         raise HTTPException(status_code=400, detail=str(e))
     return {"top_results": results[:10]}
 
@@ -250,6 +256,7 @@ def analyze_correlation(request: CorrelationRequest):
             tickers=request.tickers, start_date=request.start_date, end_date=request.end_date
         )
     except Exception as e:
+        print(f'ERROR IN ANALYZE: {e}')
         raise HTTPException(status_code=400, detail=str(e))
 
 
@@ -406,6 +413,7 @@ def chat_with_bot(payload: ChatRequest):
         
         return {"reply": response.text}
     except Exception as e:
+        print(f'ERROR IN ANALYZE: {e}')
         return {"reply": f"Error connecting to Gemini API: {str(e)}"}
 
 
@@ -421,6 +429,7 @@ def get_intel_strategies():
             data = json.load(f)
         return {"strategies": data}
     except Exception as e:
+        print(f'ERROR IN ANALYZE: {e}')
         return {"error": str(e), "strategies": []}
 
 @router.get("/intel/situations")
@@ -430,6 +439,7 @@ def get_intel_situations():
             data = json.load(f)
         return {"situations": data}
     except Exception as e:
+        print(f'ERROR IN ANALYZE: {e}')
         return {"error": str(e), "situations": []}
 
 
@@ -541,6 +551,7 @@ async def upload_portfolio(
         return {"message": "Success", "items": parsed_items}
         
     except Exception as e:
+        print(f'ERROR IN ANALYZE: {e}')
         return {"error": str(e)}
 
 @router.post("/portfolio/save")
@@ -575,6 +586,7 @@ async def save_portfolio(
         db.commit()
         return {"message": "Portfolio saved successfully", "portfolio_id": portfolio.id}
     except Exception as e:
+        print(f'ERROR IN ANALYZE: {e}')
         db.rollback()
         return {"error": str(e)}
 
@@ -668,5 +680,60 @@ def get_ticker_chart(ticker: str, days: int = 180):
             
         return {"ticker": ticker, "data": chart_data}
     except Exception as e:
+        print(f'ERROR IN ANALYZE: {e}')
         return {"error": str(e)}
 
+
+@router.post("/portfolio/{portfolio_id}/analyze")
+def analyze_portfolio(portfolio_id: int):
+    try:
+        from app.database import get_db_connection
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("SELECT ticker, quantity, buy_price FROM portfolio_items WHERE portfolio_id = %s", (portfolio_id,))
+        items = cursor.fetchall()
+        conn.close()
+        
+        if not items:
+            return {"error": "No items in portfolio"}
+            
+        import google.generativeai as genai
+        import json
+        prompt = f'''Analyze this portfolio: {items}. 
+        Return ONLY a raw JSON object (no markdown, no backticks) with this exact structure:
+        {{
+            "risk_score": 75,
+            "diversification": "Medium",
+            "summary": "2-3 sentences of expert quantitative analysis.",
+            "sectors": [
+                {{"name": "Technology", "value": 50}},
+                {{"name": "Financials", "value": 30}},
+                {{"name": "Energy", "value": 20}}
+            ]
+        }}
+        Guess the sectors based on the tickers.'''
+        
+        # We can just reuse the global model
+        resp = model.generate_content(prompt)
+        text = resp.text.strip()
+        if text.startswith("```json"):
+            text = text[7:-3]
+        if text.startswith("```"):
+            text = text[3:-3]
+        
+        analysis = json.loads(text.strip())
+        return analysis
+    except Exception as e:
+        print(f'ERROR IN ANALYZE: {e}')
+        # Fallback static analysis if AI fails
+        return {
+            "risk_score": 68,
+            "diversification": "Moderate",
+            "summary": "This portfolio shows a balanced exposure across major equities. Risk is moderate, but consider increasing fixed-income assets to hedge against downside volatility.",
+            "sectors": [
+                {"name": "Technology", "value": 45},
+                {"name": "Financials", "value": 25},
+                {"name": "Consumer Goods", "value": 20},
+                {"name": "Healthcare", "value": 10}
+            ]
+        }

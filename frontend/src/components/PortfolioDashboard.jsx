@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import HoldingDetailModal from './HoldingDetailModal';
+import PortfolioAnalysisDrawer from './PortfolioAnalysisDrawer';
 import { useRegion } from '../RegionContext';
 import { Upload, FileText, CheckCircle, AlertCircle, TrendingUp, TrendingDown, RefreshCw, Plus, X, ArrowRight, Sparkles, ChevronRight } from 'lucide-react';
 
@@ -20,6 +21,7 @@ export default function PortfolioDashboard() {
   const [tipFilter, setTipFilter] = useState('ALL');
   const [strategies, setStrategies] = useState([]);
   const [selectedHolding, setSelectedHolding] = useState(null);
+  const [isAnalyzeOpen, setIsAnalyzeOpen] = useState(false);
 
   useEffect(() => {
     fetchPortfolios();
@@ -229,7 +231,7 @@ export default function PortfolioDashboard() {
           <p className="text-sm font-medium text-slate-500 dark:text-zinc-400">Live portfolio valuation and holding analysis.</p>
         </div>
         <div className="flex space-x-3">
-          <button className="flex items-center space-x-2 px-4 py-2 border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-slate-700 dark:text-zinc-300 rounded-lg text-sm font-medium transition-colors hover:bg-slate-50 dark:hover:bg-zinc-800">
+          <button onClick={() => setIsAnalyzeOpen(true)} className="flex items-center space-x-2 px-4 py-2 border border-slate-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-slate-700 dark:text-zinc-300 rounded-lg text-sm font-medium transition-colors hover:bg-slate-50 dark:hover:bg-zinc-800">
             <span>Analyze Portfolio</span>
             <ArrowRight size={16} />
           </button>
@@ -388,6 +390,7 @@ export default function PortfolioDashboard() {
       </div>
       
       {selectedHolding && <HoldingDetailModal holding={selectedHolding} onClose={() => setSelectedHolding(null)} />}
+  {isAnalyzeOpen && <PortfolioAnalysisDrawer portfolioId={activePortfolio?.id} onClose={() => setIsAnalyzeOpen(false)} />}
     </div>
   );
 }
