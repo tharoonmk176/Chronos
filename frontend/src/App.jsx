@@ -19,6 +19,7 @@ import AdvancedTechnicalChart from "./components/AdvancedTechnicalChart";
 import StrategyIntelligence from "./components/StrategyIntelligence";
 import LabsDashboard from "./components/LabsDashboard";
 import AuthPanel from "./components/AuthPanel";
+import LandingPage from "./components/LandingPage";
 import { clearToken } from "./api/client";
 import { loggedIn, loggedOut } from "./store/authSlice";
 import { runBacktestFlow } from "./store/backtestSlice";
@@ -32,6 +33,7 @@ function App() {
   const [activeSubTab, setActiveSubTab] = useState("overview");
   const [isDark, setIsDark] = useState(true);
   const [labsForm, setLabsForm] = useState({ ticker: "BTC-USD", start_date: "2023-01-01", end_date: "2024-01-01", initial_capital: 10000, strategy: "sma_crossover", transaction_cost: 0.001, sma_fast: 20, sma_slow: 50 });
+  const [showLanding, setShowLanding] = useState(true);
   useEffect(() => {
     if (document.documentElement.classList.contains("dark")) setIsDark(true);
   }, []);
@@ -50,6 +52,10 @@ function App() {
         : null;
     });
   })();
+  if (showLanding) {
+    return <LandingPage onComplete={() => setShowLanding(false)} />;
+  }
+
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen bg-slate-50 dark:bg-zinc-950 flex flex-col items-center justify-center p-4">
