@@ -2,6 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { Upload, FileText, CheckCircle, AlertCircle, TrendingUp, TrendingDown, RefreshCw, Plus, X, ArrowRight } from 'lucide-react';
 
 export default function PortfolioDashboard() {
+  const getTip = (h) => {
+    if (h.total_gain_pct > 20 && h.today_gain < 0) return { action: 'HOLD', reason: 'Strong trend despite daily dip', color: 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400 border-amber-200 dark:border-amber-500/30' };
+    if (h.total_gain_pct < -10) return { action: 'REVIEW', reason: 'High drawdown', color: 'bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-400 border-red-200 dark:border-red-500/30' };
+    if (h.today_gain > 0 && h.total_gain_pct > 5) return { action: 'ACCUMULATE', reason: 'Trend confirming upside', color: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400 border-emerald-200 dark:border-emerald-500/30' };
+    return { action: 'HOLD', reason: 'Consolidating', color: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-400 border-indigo-200 dark:border-indigo-500/30' };
+  };
   const [portfolios, setPortfolios] = useState([]);
   const [activePortfolio, setActivePortfolio] = useState(null);
   const [holdings, setHoldings] = useState([]);
@@ -254,6 +260,7 @@ export default function PortfolioDashboard() {
                 <th className="py-3 px-4 font-semibold uppercase tracking-wider text-xs text-right">Total Value</th>
                 <th className="py-3 px-4 font-semibold uppercase tracking-wider text-xs text-right">Total P/L</th>
                 <th className="py-3 px-4 font-semibold uppercase tracking-wider text-xs text-right">Today P/L</th>
+                <th className="py-3 px-4 font-semibold uppercase tracking-wider text-xs text-center w-48">Chronos AI Tip</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-zinc-800">
@@ -270,6 +277,21 @@ export default function PortfolioDashboard() {
                   </td>
                   <td className={`py-3 px-4 text-right font-semibold ${h.today_gain >= 0 ? 'text-indigo-600 dark:text-indigo-400' : 'text-red-600 dark:text-red-400'}`}>
                     {h.today_gain >= 0 ? '+' : ''}{formatCurrency(h.today_gain)}
+                  </td>
+                  <td className="py-2 px-4 text-center">
+                    {(() => {
+                      const tip = getTip(h);
+                      return (
+                        <div className="flex flex-col items-center">
+                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded border ${tip.color}`}>
+                            {tip.action}
+                          </span>
+                          <span className="text-[10px] text-slate-500 dark:text-zinc-400 mt-1 truncate w-full max-w-[120px]">
+                            {tip.reason}
+                          </span>
+                        </div>
+                      );
+                    })()}
                   </td>
                 </tr>
               ))}
