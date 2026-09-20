@@ -46,15 +46,16 @@ export default function ResultsTable({ results }) {
     if (!results) return;
     const { summary, risk_metrics: risk, trade_statistics: trades, ticker, start_date, end_date, strategy } = results;
 
-    const canvases = document.querySelectorAll('canvas');
+    // Grab the Recharts SVGs from the DOM
+    const chartWrappers = document.querySelectorAll('.recharts-wrapper');
     let equityChart = '';
     let drawdownChart = '';
     
-    if (canvases.length > 0) {
-      equityChart = `<img src="${canvases[0].toDataURL('image/png')}" style="width: 100%; max-height: 280px; object-fit: contain; border: 1px solid #e2e8f0; border-radius: 8px; margin-top: 15px;" />`;
+    if (chartWrappers.length > 0) {
+      equityChart = `<div style="display: flex; justify-content: center; transform: scale(0.85); transform-origin: top center;">${chartWrappers[0].outerHTML}</div>`;
     }
-    if (canvases.length > 1) {
-      drawdownChart = `<img src="${canvases[1].toDataURL('image/png')}" style="width: 100%; max-height: 280px; object-fit: contain; border: 1px solid #e2e8f0; border-radius: 8px; margin-top: 15px;" />`;
+    if (chartWrappers.length > 1) {
+      drawdownChart = `<div style="display: flex; justify-content: center; transform: scale(0.85); transform-origin: top center;">${chartWrappers[1].outerHTML}</div>`;
     }
 
     const htmlContent = `
@@ -96,7 +97,7 @@ export default function ResultsTable({ results }) {
             </tbody>
         </table>
 
-        <h3 style="color: #475569;">Equity Curve Progression</h3>
+        <h3 style="color: #475569;">Equity Curve Progression (Trend Diagram)</h3>
         <p>
           The graph below visualizes the compounding portfolio value over the specified timeline. A consistent, upward-trending equity curve with minimal volatility indicates a stable algorithmic framework.
         </p>
@@ -136,7 +137,7 @@ export default function ResultsTable({ results }) {
             </tbody>
         </table>
 
-        <h3 style="color: #475569;">Historical Drawdown Depths</h3>
+        <h3 style="color: #475569;">Historical Drawdown Depths (Risk Diagram)</h3>
         <p>
           The drawdown chart illustrates the percentage drop from the portfolio's highest peak. 
           Deep, extended red zones suggest periods of significant market stress or structural failure in the strategy. 
@@ -152,13 +153,19 @@ export default function ResultsTable({ results }) {
 
     const container = document.createElement('div');
     container.innerHTML = htmlContent;
+    
+    // We must append to document so html2canvas can render the SVG properly
+    container.style.position = 'absolute';
+    container.style.left = '-9999px';
+    container.style.top = '0';
+    container.style.width = '800px';
     document.body.appendChild(container);
 
     const opt = {
       margin:       [0.5, 0, 0.5, 0],
       filename:     `Chronos_Detailed_Report_${ticker}.pdf`,
       image:        { type: 'jpeg', quality: 1.0 },
-      html2canvas:  { scale: 2, useCORS: true, letterRendering: true },
+      html2canvas:  { scale: 2, useCORS: true, letterRendering: true, logging: false },
       jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
     };
 
