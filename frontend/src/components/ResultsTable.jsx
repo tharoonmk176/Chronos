@@ -61,7 +61,7 @@ export default function ResultsTable({ results }) {
         <StatCard
           label="Total Return" icon={Activity}
           value={fmt(summary.total_return_percent, "%")}
-          subtext={`Final: ${fmt(summary.final_value, " $")}`}
+          subtext={`Final: ${region.currency}${fmt(summary.final_value)}`}
           negative={!isProfit}
           highlight={true}
         />{" "}

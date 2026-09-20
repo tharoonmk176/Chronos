@@ -116,7 +116,7 @@ export default function OptimizerPanel() {
         <div>
           {" "}
           <label className="block text-xs font-medium text-slate-700 dark:text-zinc-300 mb-1">
-            Capital ($)
+            Capital ({region.currency})
           </label>{" "}
           <input
             type="number"

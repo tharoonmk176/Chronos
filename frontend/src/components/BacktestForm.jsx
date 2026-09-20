@@ -88,7 +88,7 @@ export default function BacktestForm({ onSubmit, loading }) {
       <div>
         {" "}
         <label className="block text-xs font-medium text-slate-700 dark:text-zinc-300 mb-1">
-          Initial Capital ($)
+          Initial Capital ({region.currency})
         </label>{" "}
         <input
           type="number"

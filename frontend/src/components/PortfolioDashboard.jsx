@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import { useRegion } from '../RegionContext';
 import { Upload, FileText, CheckCircle, AlertCircle, TrendingUp, TrendingDown, RefreshCw, Plus, X, ArrowRight } from 'lucide-react';
 
 export default function PortfolioDashboard() {
+  const { region } = useRegion();
   const getTip = (h) => {
     if (h.total_gain_pct > 20 && h.today_gain < 0) return { action: 'HOLD', reason: 'Strong trend despite daily dip', color: 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400 border-amber-200 dark:border-amber-500/30' };
     if (h.total_gain_pct < -10) return { action: 'REVIEW', reason: 'High drawdown', color: 'bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-400 border-red-200 dark:border-red-500/30' };
@@ -99,7 +101,8 @@ export default function PortfolioDashboard() {
   };
 
   const formatCurrency = (val) => {
-    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(val || 0);
+    const num = new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(val || 0);
+    return `${region.currency}${num}`;
   };
 
   if (reviewItems) {

@@ -59,7 +59,7 @@ export default function TradesList({ trades }) {
                     {t.date}
                   </td>{" "}
                   <td className="py-2 px-3 text-right font-medium text-slate-900 dark:text-zinc-50 ">
-                    ${t.price.toFixed(2)}
+                    {region.currency}{t.price.toFixed(2)}
                   </td>{" "}
                   <td className="py-2 px-3 text-right text-slate-600 dark:text-zinc-400 ">
                     {t.shares.toFixed(4)}
