@@ -298,8 +298,10 @@ class ChatMessage(BaseModel):
     role: str
     content: str
 
+from typing import Optional
 class ChatRequest(BaseModel):
     messages: List[ChatMessage]
+    context: Optional[str] = None
 
 
 import os
@@ -308,7 +310,19 @@ from dotenv import load_dotenv
 
 load_dotenv()
 genai.configure(api_key=os.environ.get("GEMINI_API_KEY"))
-model = genai.GenerativeModel("gemini-flash-latest", system_instruction="You are an expert Quantitative Research Assistant for the Chronos Backtesting Platform. You help users analyze financial markets, trading strategies like SMA crossover and momentum, and risk metrics like Sharpe Ratio and Drawdown. Keep answers concise and helpful.")
+model = genai.GenerativeModel("gemini-flash-latest", system_instruction="""You are Chronos, the expert Quantitative Research Assistant for the Chronos Backtesting Platform.
+You are directly integrated into the user's dashboard. 
+
+The Chronos platform currently supports the following quantitative backtesting strategies:
+1. SMA Crossover (Fast SMA crosses above/below Slow SMA)
+2. EMA Trend (Price crosses above/below EMA)
+3. Momentum Strategy (Invests if recent return is positive)
+4. Mean Reversion (Buys when RSI < 30, Sells when RSI > 70)
+5. Buy and Hold (Benchmark)
+
+The platform also supports Market Regime analysis (Bull/Bear/High-Vol/Low-Vol) and Cross-Asset Correlation analysis.
+
+You should answer any questions the user has about these strategies, how they work, when they perform best, and how to optimize their parameters (like moving average periods, transaction costs, initial capital, etc). Keep answers concise, highly intelligent, and directly helpful.""")
 chat_session = None
 
 
@@ -380,13 +394,14 @@ def monte_carlo_analysis(payload: MonteCarloRequest):
 
 @router.post("/chat")
 def chat_with_bot(payload: ChatRequest):
-    global chat_session
     try:
-        if not chat_session:
-            chat_session = model.start_chat(history=[])
+        chat_session = model.start_chat(history=[])
         
-        # We assume the last message is the user's prompt
         user_message = payload.messages[-1].content
+        
+        if payload.context:
+            user_message = f"CONTEXT INFORMATION FROM DASHBOARD:\n{payload.context}\n\nUSER QUESTION:\n{user_message}"
+            
         response = chat_session.send_message(user_message)
         
         return {"reply": response.text}

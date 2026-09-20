@@ -1,8 +1,10 @@
 import { useRegion } from "../RegionContext";
 import React, { useContext, useState, useRef, useEffect } from 'react';
+import { useSelector } from "react-redux";
 import { Bot, User, Send, X, MessageSquare, Sparkles } from 'lucide-react';
 
 export default function Chatbot() {
+  const backtestResults = useSelector(s => s.backtest?.results);
   const { region } = useRegion();
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([{ role: "assistant", content: "Hi! I am CHRONOS, your AI Quantitative Research Assistant. What would you like to analyze today?" }]);
@@ -31,7 +33,15 @@ export default function Chatbot() {
       const res = await fetch("http://localhost:8000/api/v1/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: [...messages, userMsg] })
+        body: JSON.stringify({ 
+          messages: [...messages, userMsg], 
+          context: backtestResults ? JSON.stringify({
+            performance: backtestResults.performance,
+            risk_metrics: backtestResults.risk_metrics,
+            trade_statistics: backtestResults.trade_statistics,
+            parameters_used: backtestResults.parameters
+          }) : "No active backtest results on dashboard right now." 
+        })
       });
       const data = await res.json();
       setMessages(prev => [...prev, { role: "assistant", content: data.reply || "Error fetching response." }]);
