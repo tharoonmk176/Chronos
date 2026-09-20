@@ -728,39 +728,63 @@ def get_ticker_chart(ticker: str, days: int = 180):
 def analyze_portfolio(portfolio_id: str, db: Session = Depends(get_db)):
     try:
         from app.models import PortfolioItem
+        import yfinance as yf
+        import concurrent.futures
+
         db_items = db.query(PortfolioItem).filter(PortfolioItem.portfolio_id == portfolio_id).all()
         if not db_items:
             return {"error": "No items in portfolio"}
         
         items = [{"ticker": i.ticker, "quantity": i.quantity, "buy_price": i.buy_price, "current_price": i.fallback_current_price or i.buy_price} for i in db_items]
             
-        import google.generativeai as genai
-        import json
-        
-        prompt = f'''Analyze this portfolio: {items}. 
-        Return ONLY a raw JSON array of objects (no markdown, no backticks) with this exact structure for each ticker in the portfolio:
-        [
-            {{
-                "ticker": "AAPL",
-                "company_name": "Apple Inc.",
-                "sector": "Technology",
-                "market_cap_category": "Large Cap"
-            }}
-        ]
-        Guess the company name, sector, and market cap category ("Small Cap", "Mid Cap", "Large Cap", "Others") based on the tickers. Ensure EVERY ticker from the input list is in the array.'''
-        
-        try:
-            resp = model.generate_content(prompt)
-            text = resp.text.strip()
-            if text.startswith("```json"):
-                text = text[7:-3]
-            if text.startswith("```"):
-                text = text[3:-3]
-            ai_data = json.loads(text.strip())
-            ai_map = {d["ticker"].upper(): d for d in ai_data}
-        except Exception as e:
-            print("Gemini parsing error:", e)
-            ai_map = {}
+        def fetch_yf_info(t):
+            ticker_sym = t["ticker"]
+            try:
+                info = yf.Ticker(ticker_sym).info
+                name = info.get("shortName") or info.get("longName") or ticker_sym
+                sector = info.get("sector") or "Others"
+                mcap = info.get("marketCap", 0)
+                currency = info.get("currency", "USD")
+                
+                # Normalize mcap to roughly USD for categorization
+                if currency == "INR":
+                    usd_mcap = mcap / 83.0
+                elif currency == "EUR":
+                    usd_mcap = mcap * 1.1
+                elif currency == "GBP":
+                    usd_mcap = mcap * 1.25
+                else:
+                    usd_mcap = mcap
+                    
+                if usd_mcap > 10_000_000_000:
+                    cap_cat = "Large Cap"
+                elif usd_mcap > 2_000_000_000:
+                    cap_cat = "Mid Cap"
+                elif usd_mcap > 0:
+                    cap_cat = "Small Cap"
+                else:
+                    cap_cat = "Others"
+                    
+                return {
+                    "ticker": ticker_sym,
+                    "company_name": name,
+                    "sector": sector,
+                    "market_cap_category": cap_cat
+                }
+            except Exception as e:
+                return {
+                    "ticker": ticker_sym,
+                    "company_name": ticker_sym,
+                    "sector": "Others",
+                    "market_cap_category": "Others"
+                }
+
+        # Fetch yfinance data concurrently
+        ai_map = {}
+        with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
+            results = executor.map(fetch_yf_info, items)
+            for r in results:
+                ai_map[r["ticker"].upper()] = r
         
         market_data = {}
         sector_data = {}
@@ -770,7 +794,6 @@ def analyze_portfolio(portfolio_id: str, db: Session = Depends(get_db)):
             t = item["ticker"].upper()
             meta = ai_map.get(t, {"company_name": t, "sector": "Others", "market_cap_category": "Others"})
             
-            # Fallback if Gemini missed a field
             comp_name = meta.get("company_name", t)
             sector = meta.get("sector", "Others")
             m_cap = meta.get("market_cap_category", "Others")
@@ -799,7 +822,6 @@ def analyze_portfolio(portfolio_id: str, db: Session = Depends(get_db)):
             
         top_holdings.sort(key=lambda x: x["market_value"], reverse=True)
         
-        # We format the pie chart items to {name, value} for the top level
         return {
             "market": list(market_data.values()),
             "sector": list(sector_data.values()),
